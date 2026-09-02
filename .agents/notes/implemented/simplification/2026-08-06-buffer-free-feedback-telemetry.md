@@ -10,6 +10,8 @@ Feedback-only telemetry must upload the session-log prefix only after recorded f
 
 ## Decision
 
+This decision no longer stands: [Remove remote telemetry](2026-09-02-remove-remote-telemetry.md) deletes the `dsh-session-telemetry-otel` backend, its base-bundle mount, and the `DSH_TELEMETRY_*` switches. The sections below record the decision as it shipped before that removal.
+
 The telemetry coordinator provides `live` and `on-demand` capture. On-demand capture registers no session, flush, or operational-event listeners and retains no projected records. `captureSession(session, throughSeq?)` reads the canonical session log after the handoff cursor through an optional inclusive sequence boundary, applies the fixed projection, deep-copies each accepted event, runs the current `session-telemetry/record` waterfall, and hands the result to the backend.
 
 `FEEDBACK_ONLY` invokes that method with the `feedback/record` event's sequence. The append is already committed when `session/event` listeners run, so the replay contains the feedback event and cannot include a later suffix. The existing handoff cursor distinguishes later replays without another pending-record index.

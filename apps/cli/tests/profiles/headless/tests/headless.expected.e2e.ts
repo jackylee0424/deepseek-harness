@@ -207,7 +207,6 @@ describe('headless stream-json snapshots', () => {
       tsconfigPath,
       env: {
         DSH_PERMISSION_MODE: 'danger-full-access',
-        DSH_TELEMETRY_DISABLED: '1',
         NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
       },
       inspect: async (cwd) => {
@@ -240,7 +239,6 @@ describe('headless stream-json snapshots', () => {
       expectedExitCode: 1,
       env: {
         DSH_CLI_MOCK_FAILURE: '1',
-        DSH_TELEMETRY_DISABLED: '1',
         NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
       },
     })

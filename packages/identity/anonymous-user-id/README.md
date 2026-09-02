@@ -1,5 +1,5 @@
 ---
-description: "Anonymous per-harness-home identity for users and maintainers tracing how telemetry, feedback acknowledgement, and DeepSeek provider requests correlate records."
+description: "Anonymous per-harness-home identity that the feedback acknowledgement reports, for users and maintainers who need to name an installation without identifying its user."
 kind: "package-library"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Every harness home gets one anonymous id that telemetry, feedback, and DeepSeek requests attach to their records, so receiving systems can tell that records came from the same installation without learning who the user is. The id is a random UUID stored in `$DSH_HOME/.anonymous-user-id` (`~/.dsh` by default); it appears automatically the first time one of those features runs, stays stable across restarts, and is created fresh if you delete the file. Separate harness homes never share an id, and no machine or account detail goes into it. Use it whenever you want to correlate records from one installation without an account; it cannot join records across different homes.
+Every harness home gets one anonymous id that the `/feedback` acknowledgement reports, so a user quoting feedback can name their installation without revealing who they are. No shipped feature transmits the id; a deployment-mounted telemetry backend may attach it to its own records. The id is a random UUID stored in `$DSH_HOME/.anonymous-user-id` (`~/.dsh` by default); it appears automatically the first time feedback is recorded, stays stable across restarts, and is created fresh if you delete the file. Separate harness homes never share an id, and no machine or account detail goes into it. Use it whenever you want to correlate records from one installation without an account; it cannot join records across different homes.
 
 ## Table of Contents
 
@@ -25,15 +25,14 @@ Every harness home gets one anonymous id that telemetry, feedback, and DeepSeek 
 <a id="use-this-package"></a>
 ## Use this package
 
-When you want the records your installation sends out to be recognizable as coming from the same harness home — telemetry, feedback, and DeepSeek requests all carry one shared id — this package is what provides it. There is nothing to install or configure: the id appears automatically, and the shipped feedback, telemetry, and DeepSeek features already use it. Do not use it to identify a user or to join records across different homes; it is anonymous and home-scoped.
+When you want one stable, anonymous name for a harness home — the feedback acknowledgement reports it, and a backend you mount can attach it to its own records — this package is what provides it. There is nothing to install or configure: the id appears automatically, and the shipped feedback command already uses it. Do not use it to identify a user or to join records across different homes; it is anonymous and home-scoped.
 
 ### What the id does for you
 
-Three things your installation sends out carry the same id, so records line up across all of them:
+The shipped product uses the id in one place, and a deployment can add its own:
 
-- **Session telemetry** — your telemetry exports carry the id as the `user.id` resource attribute, so a collector can group an installation's records.
-- **Feedback** — each feedback acknowledgement names the anonymous installation that recorded it.
-- **DeepSeek requests** — every provider request carries the `x-deepseek-harness-user-id` header, so usage can be attributed per installation.
+- **Feedback** — each feedback acknowledgement names the anonymous installation that recorded it, and nothing transmits it.
+- **Your own backend** — a deployment that mounts a `SessionTelemetryBackend` can attach the same id to its records so they line up with feedback.
 
 ### Observing and resetting the id
 
@@ -41,7 +40,7 @@ The id lives in `$DSH_HOME/.anonymous-user-id` (`~/.dsh` by default) as a plain 
 
 ### Using it in your own package
 
-When you build a feature that should share the installation's anonymous id, import the value once and reuse it — telemetry, feedback, and DeepSeek already use the same id, so your records line up with theirs:
+When you build a feature that should share the installation's anonymous id, import the value once and reuse it — the feedback acknowledgement already reports the same id, so your records line up with it:
 
 ```ts
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
@@ -65,7 +64,7 @@ This section explains the design decisions behind the package and points at the 
 
 - **Random, never derived.** The id comes from `crypto.randomUUID()`; it is never derived from the hostname, network address, git remote, or any other identifying source, so anonymity is a property of the mint.
 - **Synchronous and memoized.** One process touches the disk once: reads and writes are synchronous, and the result is memoized per resolved file path.
-- **Best-effort persistence.** A write failure still returns a usable id for the run, so telemetry and feedback never block on an unwritable home.
+- **Best-effort persistence.** A write failure still returns a usable id for the run, so feedback never blocks on an unwritable home.
 - **Library, not plugin.** There is no Cordis plugin entry or config. No invariant companion is published because the package owns no event stream or public mutable relation to compare without creating the id as a side effect.
 
 ### Source map
@@ -95,9 +94,7 @@ Read these pages when the package-level contract is not enough. They move from t
 
 - [identity group map](../README.md) — the sibling packages and group scope.
 - [dsh-home-paths](../../util/home-paths/README.md) — owns `$DSH_HOME` and `~/.dsh` resolution.
-- [dsh-session-telemetry-otel](../../session/session-telemetry-otel/README.md) — reports the id as the OTel Resource `user.id`.
 - [dsh-command-feedback](../../feedback/command-feedback/README.md) — embeds the id in the feedback acknowledgement.
-- [dsh-llm-deepseek](../../llm/llm-deepseek/README.md) — sends `x-deepseek-harness-user-id` on provider requests.
 - [Session telemetry subsystem](../../../docs/subsystems/session-telemetry.md) — the telemetry seam and its backend contract.
 
 -----
@@ -105,11 +102,11 @@ Read these pages when the package-level contract is not enough. They move from t
 <a id="model-experience"></a>
 ## Model Experience
 
-None, as the shared identifier reaches DeepSeek only as model-hidden HTTP metadata and registers nothing model-facing.
+None, as the shared identifier appears only in the `/feedback` acknowledgement and registers nothing model-facing.
 
 #### KV Cache effect
 
-None; the transport header changes neither tokens nor the model-visible prefix.
+None; the id never enters a provider request.
 
 ## Known Limitations and Deferred Work
 
@@ -121,7 +118,7 @@ These limits describe when the id is a poor fit or needs special attention. They
 - **No recovery after deletion** — losing the file mints a new anonymous identity by design; recovery would require stable derivation material that weakens anonymity.
 - **Best-effort concurrency** — a reader landing in the narrow interval between a concurrent process's exclusive create and completed write can use a different in-memory UUID for that run; later launches converge on the persisted value.
 - **No cross-home identity** — different `$DSH_HOME` values cannot be correlated.
-- **Configured DeepSeek gateways receive the id** — `dsh-llm-deepseek` sends the stable header to its resolved `baseURL`, including deployment overrides, independently of telemetry sharing mode.
+
 - **Deleting the file does not reset the current process** — memoization keeps the run's id until the next launch.
 
 <a id="dev-note"></a>

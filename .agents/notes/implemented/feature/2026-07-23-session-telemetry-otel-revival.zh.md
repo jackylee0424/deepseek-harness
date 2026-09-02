@@ -10,6 +10,8 @@ Status: implemented
 
 ## 决策
 
+该决策已不再生效：[移除远程遥测](../simplification/2026-09-02-remove-remote-telemetry.zh.md)删除了 `dsh-session-telemetry-otel` 后端、它在基础组合包中的挂载以及 `DSH_TELEMETRY_*` 开关。以下各节记录的是该移除之前已交付的决策。
+
 `packages/session/`（原 `telemetry/`）以 SDK 立场复活这两个经过评审的包——harness 提供能力，部署方配置上报去向并对导出内容负责：
 
 - **`@deepseek-ai/dsh-session-telemetry`** —— seam 本体。`SessionTelemetrySink`（`emit`/`flush?`/`shutdown`）、服务注册形态的 `SessionTelemetryBackend`、以及拥有捕获侧的 `SessionTelemetryCoordinator`：带游标回读的实时纳管与逐 append 的 firehose（投影 → `structuredClone` → 脱敏 → `emit`，零 I/O）、从权威日志进行的无缓冲按需回放、固定的每个（轮次、步骤）组合首分片投影、实时 `agent/error` 转发，以及实时 dispose（资源释放）时的 `shutdown` 记录。

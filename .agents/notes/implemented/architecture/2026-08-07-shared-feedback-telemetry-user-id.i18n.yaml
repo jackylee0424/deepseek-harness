@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-07-shared-feedback-telemetry-user-id.md
-2026-08-07-shared-feedback-telemetry-user-id.md: 2efc5b9f5fcc59542924567bf976fcb9ae60ac5a
-2026-08-07-shared-feedback-telemetry-user-id.zh.md: 2f04536aec613b51ccf2f628a4b5d53604f4fb35
+2026-08-07-shared-feedback-telemetry-user-id.md: 94899e0d65cc8e0385c35b5a2f3d63b9db216750
+2026-08-07-shared-feedback-telemetry-user-id.zh.md: bd27d66aa715de6407190a7ba932f076097ee051

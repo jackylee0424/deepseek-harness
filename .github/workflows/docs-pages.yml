@@ -29,9 +29,6 @@ env:
   # only the most recent tags — following the tag would leave every projected
   # source link on an older deploy unresolvable.
   DOCS_REPOSITORY_REF: master
-  # CI runs must never report to the production telemetry endpoint baked
-  # into apps/cli/cordis.yml (AppCLIEntry disables the row when set).
-  DSH_TELEMETRY_DISABLED: '1'
 
 jobs:
   build:

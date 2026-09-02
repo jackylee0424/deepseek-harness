@@ -26,9 +26,6 @@ env:
   # the surface the Access application protects; the project's production branch
   # is deliberately a name no deployment uses, so no unprotected URL exists.
   CF_PROJECT: dsh-build-preview
-  # CI runs must never report to the production telemetry endpoint baked into
-  # apps/cli/cordis.yml (AppCLIEntry disables the row when set).
-  DSH_TELEMETRY_DISABLED: '1'
 
 jobs:
   preview:

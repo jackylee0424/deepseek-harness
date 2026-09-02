@@ -24,7 +24,7 @@ The immediate prompt came from OpenRouter's [App Attribution](https://openrouter
 
 ## Decision
 
-Provider-neutral app attribution is mandatory at the LLM adapter boundary, using the standard `User-Agent` header only. The rule: every product LLM adapter sends a static, non-secret application identity on every provider HTTP request, and every adapter has tests proving that `User-Agent` reaches the wire (a mock server asserting received headers; for a library-backed adapter, the library's header hook feeding the same mock-server assertion). This rule governs app attribution, not provider-specific request identity: [the DeepSeek request-identity decision](../feature/2026-08-11-deepseek-request-user-id-header.md) separately owns its user and session headers.
+Provider-neutral app attribution is mandatory at the LLM adapter boundary, using the standard `User-Agent` header only. The rule: every product LLM adapter sends a static, non-secret application identity on every provider HTTP request, and every adapter has tests proving that `User-Agent` reaches the wire (a mock server asserting received headers; for a library-backed adapter, the library's header hook feeding the same mock-server assertion). This rule governs app attribution only: no adapter sends provider-specific request identity since [Remove remote telemetry](../simplification/2026-09-02-remove-remote-telemetry.md) withdrew the DeepSeek user and session headers that [the DeepSeek request-identity decision](../feature/2026-08-11-deepseek-request-user-id-header.md) had added.
 
 OpenRouter app attribution is deliberately not implemented. `HTTP-Referer`, `X-OpenRouter-Title`, `X-Title`, and `X-OpenRouter-Categories` are OpenRouter-specific product-surface headers, not provider-neutral model-request attribution. They can be proposed later by an OpenRouter adapter or explicit OpenRouter mode, with its own privacy/product decision, tests, and docs. Until then, even requests pointed at OpenRouter send only the shared `User-Agent` attribution from this decision.
 
@@ -41,7 +41,7 @@ Wire mapping (`attributionHeaders`; header names lowercase in code - HTTP field 
 | Target | Mapping |
 |---|---|
 | All HTTP-based adapters | `User-Agent: {product}/{version} (+{url})` - the parenthesized `+url` comment stays within RFC 9110's conservative product/comment syntax. |
-| Direct DeepSeek endpoint | `User-Agent` for app attribution; `x-deepseek-harness-user-id` and conditional `x-deepseek-harness-session-id` are separate request identity under the DeepSeek-specific decision. Do not send OpenRouter-only headers unless DeepSeek documents an equivalent contract. |
+| Direct DeepSeek endpoint | `User-Agent` for app attribution; no user or session identity headers. Do not send OpenRouter-only headers unless DeepSeek documents an equivalent contract. |
 | OpenRouter endpoints | `User-Agent` only. This decision excludes `HTTP-Referer`, `X-OpenRouter-Title`, `X-Title`, and `X-OpenRouter-Categories`. |
 | Future providers | `User-Agent` only unless a later provider-specific Agent Note accepts additional headers. Do not reuse `HTTP-Referer` by analogy. |
 

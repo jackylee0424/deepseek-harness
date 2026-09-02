@@ -10,6 +10,8 @@ Session telemetry is mounted by default ([default-mount Note](2026-07-31-web-tel
 
 ## Decision
 
+This decision no longer stands: [Remove remote telemetry](../simplification/2026-09-02-remove-remote-telemetry.md) deletes the `dsh-session-telemetry-otel` backend, its base-bundle mount, and the `DSH_TELEMETRY_*` switches. The sections below record the decision as it shipped before that removal.
+
 `getOrCreateAnonymousUserId()` returns the bare UUID line in `$DSH_HOME/.anonymous-user-id` (resolved by `resolveDshHome`, `$DSH_HOME` > `~/.dsh`), minting and persisting a random UUID v4 on first use; the backend constructor carries it as the Resource's `user.id` (the OTel semconv user attribute), once per export batch. The original implementation lived inside `session-telemetry-otel` because no second real consumer existed. `/feedback` later became that consumer, so [the shared-id decision](../architecture/2026-08-07-shared-feedback-telemetry-user-id.md) moves ownership to `@deepseek-ai/dsh-anonymous-user-id` without changing the storage, anonymity, concurrency, or loss semantics recorded here. [Direct DeepSeek request identity](2026-08-11-deepseek-request-user-id-header.md) is a third consumer of the same id.
 
 | Ruling | Value | Rationale |

@@ -714,7 +714,6 @@ describe('headless recorded-session snapshots', () => {
               : { DSH_PERMISSION_MODE: scenario.manifest.permission }),
             ...scenario.manifest.environment,
             NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
-            DSH_TELEMETRY_DISABLED: '1',
           },
           prepare: async (cwd) => {
             await mkdir(join(cwd, patchRoot), { recursive: true })

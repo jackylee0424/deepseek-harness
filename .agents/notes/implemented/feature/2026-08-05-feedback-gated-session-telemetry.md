@@ -10,6 +10,8 @@ Session telemetry originally has one mounted behavior: every accepted record ent
 
 ## Decision
 
+This decision no longer stands: [Remove remote telemetry](../simplification/2026-09-02-remove-remote-telemetry.md) deletes the `dsh-session-telemetry-otel` backend, its base-bundle mount, and the `DSH_TELEMETRY_*` switches. The sections below record the decision as it shipped before that removal.
+
 `@deepseek-ai/dsh-session-telemetry-otel` exposes the string-valued `SessionTelemetryMode` enum to TypeScript callers and accepts the same three uppercase `mode` values in serialized configuration:
 
 - `FULL` explicitly selects immediate delivery to the configured OTel pipeline.

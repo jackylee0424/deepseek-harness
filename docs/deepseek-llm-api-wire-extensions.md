@@ -10,7 +10,7 @@ The adapter sends the additions to its resolved `baseURL`, including a configure
 
 | Location | Naming | Examples |
 |---|---|---|
-| HTTP field names | Lowercase kebab-case; HTTP matching remains case-insensitive | `user-agent`, `x-deepseek-harness-session-id` |
+| HTTP field names | Lowercase kebab-case; HTTP matching remains case-insensitive | `user-agent`, `x-deepseek-harness-compact` |
 | DeepSeek request-body extension fields | Snake case with the reserved `dsh_` prefix | `dsh_plugin_packages`, `dsh_session_log` |
 | DSH-owned nested JSON members | Camel case | `afterSeq`, `throughSeq`, `sessionId` |
 | Tagged values | Kebab-case strings; durable events use `domain/action` | `session-log-deepseek/delivery-accepted` |
@@ -24,11 +24,10 @@ The [`DeepSeekLlmApiExtensionRegistry`](../packages/llm/deepseek-llm-api-extensi
 | Header | Presence | Value |
 |---|---|---|
 | `user-agent` | Every provider HTTP request, including Files API operations | Application identity in `product/version (+url)` form; the default product is `deepseek-harness` |
-| `x-deepseek-harness-user-id` | Every authorized chat-completion request | The stable anonymous UUID for the resolved Harness home |
-| `x-deepseek-harness-session-id` | Chat-completion requests carrying a Session id | The exact request `sessionId` string |
+
 | `x-deepseek-harness-compact` | Chat-completion requests whose purpose is `compaction` | The literal string `1` |
 
-Credential failure happens before anonymous-user-id resolution, so an unauthorized request neither sends these headers nor creates the identity file. A direct request without a Session omits `x-deepseek-harness-session-id`. Session-title requests have no additional purpose header; the ordinary Session-id rule still applies when one carries a `sessionId`.
+No request carries a harness user or Session identity header; `GenerateOptions.sessionId` reaches only the body-extension contributors. Session-title requests have no additional purpose header.
 
 ## Body-extension transaction
 
@@ -40,7 +39,7 @@ After the configured endpoint returns HTTP 2xx, the adapter runs the prepared `a
 
 ## `dsh_plugin_packages`
 
-[`@deepseek-ai/dsh-plugin-package-inventory-deepseek`](../packages/llm/plugin-package-inventory-deepseek/README.md) contributes the complete active Loader-backed plugin package inventory. The field is enabled by default.
+[`@deepseek-ai/dsh-plugin-package-inventory-deepseek`](../packages/llm/plugin-package-inventory-deepseek/README.md) contributes the complete active Loader-backed plugin package inventory. The contributor row ships `disabled: true` in every shipped profile; a deployment overlay enables it.
 
 ```json
 {
@@ -154,6 +153,6 @@ Transport and non-2xx failures append no watermark. A crash after endpoint accep
 
 ## Exposure and receiver requirements
 
-The request headers expose the Harness application version, one anonymous Harness-home identity, and an optional Session identity. `dsh_plugin_packages` exposes active npm package names and versions. When enabled, `dsh_session_log` may expose the Session working directory, system-prompt snapshots, user and assistant content, raw assistant chunks, tool arguments and results, compaction summaries, feedback, and plugin-owned events. Adapter API keys are not Session events and therefore do not enter the field. A gateway selected through `baseURL` receives the same values as the official endpoint.
+The request headers expose only the Harness application version. When enabled, `dsh_plugin_packages` exposes active npm package names and versions. When enabled, `dsh_session_log` may expose the Session working directory, system-prompt snapshots, user and assistant content, raw assistant chunks, tool arguments and results, compaction summaries, feedback, and plugin-owned events. Adapter API keys are not Session events and therefore do not enter the field. A gateway selected through `baseURL` receives the same values as the official endpoint.
 
 Receivers address extension fields by name, dispatch each field by its own `version`, preserve distinct package versions, and ignore JSON member ordering. A session-log receiver validates the contiguous sequence range before interpreting event types. An unrecognized canonical event without `ignorable: true` prevents lossless reconstruction. The base request remains usable without either the registry or a particular contribution; field absence means that contribution did not apply to that request.

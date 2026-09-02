@@ -10,6 +10,8 @@ The telemetry seam and OTel backend ([revival Note](2026-07-23-session-telemetry
 
 ## Decision
 
+This decision no longer stands: [Remove remote telemetry](../simplification/2026-09-02-remove-remote-telemetry.md) deletes the `dsh-session-telemetry-otel` backend, its base-bundle mount, and the `DSH_TELEMETRY_*` switches. The sections below record the decision as it shipped before that removal.
+
 The shared dsh base bundle (`packages/bundle/base/cordis.patch.yml`) mounts the `session-telemetry-otel` row with a baked-in production endpoint, so every base-backed profile has one consistent telemetry capability. The standalone [`sdk-minimal` profile](../architecture/2026-08-24-standalone-sdk-minimal-profile.md) deliberately omits that row. The [default-off decision](2026-08-10-telemetry-default-off.md) originally kept the mounted row in `DISABLED` mode; the [feedback-gated default](2026-08-25-feedback-gated-telemetry-default.md) now resolves an unset mode to `FEEDBACK_ONLY`, uploading only when the user records `/feedback`. The endpoint alone still does not authorize reporting. Web and headless use the [bounded, escalating process-shutdown controller](../bug-fix/2026-08-03-cli-signal-shutdown-escalation.md) on SIGINT/SIGTERM, giving an enabled backend's three-second shutdown deadline time to drain before the five-second launcher bound.
 
 | Ruling | Value | Rationale |

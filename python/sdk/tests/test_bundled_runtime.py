@@ -38,7 +38,6 @@ def _client(tmp_path: Path, mode: str, monkeypatch: pytest.MonkeyPatch, *patches
                 "DEEPSEEK_API_KEY": "sk-dummy-for-boot",
                 "DEEPSEEK_BASE_URL": "http://127.0.0.1:9",
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             request_timeout_seconds=120,
         )

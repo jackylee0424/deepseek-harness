@@ -18,7 +18,7 @@ The package declares the log-only `feedback/record { text }` session event and e
 
 `dsh-commands` still writes its `command/run` / `command/done` lifecycle pair around `/feedback`, but this command sets `recordInput: false`. Its `command/run` therefore carries the command identity and source without `args`; the feedback text exists only in `feedback/record`, while `command/done` carries the acknowledgement outcome. All three records are log-only and non-surface. Their appends enter persistence's ordinary bounded write path; nothing forces a flush, so acknowledgement reports that the feedback is in the log rather than already on disk.
 
-Capture remains inert for the running agent and model. The optional OTel telemetry package later adds one infrastructure consumer: it observes `feedback/record` as a release trigger in `FEEDBACK_ONLY` mode and as the local-only warning trigger in `DISABLED` mode, without changing the feedback event or command path. See [Feedback-gated session telemetry](2026-08-05-feedback-gated-session-telemetry.md) and the [acknowledgement sharing disclosure](2026-08-07-feedback-acknowledgement-sharing-disclosure.md).
+Capture remains inert for the running agent and model. No shipped package consumes the event: the OpenTelemetry backend that once used it as a release trigger is deleted by [Remove remote telemetry](../simplification/2026-09-02-remove-remote-telemetry.md), and a deployment-mounted backend may observe it the same way without changing the feedback event or command path. See [Feedback-gated session telemetry](2026-08-05-feedback-gated-session-telemetry.md) and the [acknowledgement sharing disclosure](2026-08-07-feedback-acknowledgement-sharing-disclosure.md).
 
 ### Why feedback owns an event
 
@@ -58,6 +58,6 @@ The shipped `dsh` base mounts the command unconditionally — no configuration, 
 
 The package owns one independent append-only event with no cross-event or mutable-data relation for an invariant companion to check. The event follows the session log's existing replay, fork, persistence, and crash-tail behavior.
 
-Deferred: no product or model consumer; no structured fields; no amend or withdraw, since the log is append-only and this package adds no tombstone; and no explicit durability barrier, so an entry recorded immediately before a crash can be lost with any other unflushed tail. The optional telemetry consumer treats the event only as an export-policy trigger.
+Deferred: no product or model consumer; no structured fields; no amend or withdraw, since the log is append-only and this package adds no tombstone; and no explicit durability barrier, so an entry recorded immediately before a crash can be lost with any other unflushed tail. A deployment-mounted telemetry backend may treat the event only as an export-policy trigger.
 
 No keyless transcript snapshot accompanies this change, at the requester's explicit direction. Package tests, a real Loader composition test over a `cordis.yml`, and the shipped Web composition test cover registration, capture, model exclusion, and product assembly.

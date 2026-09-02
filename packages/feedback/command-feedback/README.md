@@ -47,6 +47,7 @@ The acknowledgement also states how the session is shared under the deployment's
 | `full` | `Session sharing is enabled.` |
 | `feedback-only` | `Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.` |
 | `disabled` | `Session sharing is disabled.` |
+| `local` | `Session records are captured locally and never shared.` |
 | no telemetry service | `Session sharing is not configured.` |
 
 The sentence reports the current policy only; it never claims the feedback or the session was delivered anywhere. The disclosure records nothing itself and never reaches the model.

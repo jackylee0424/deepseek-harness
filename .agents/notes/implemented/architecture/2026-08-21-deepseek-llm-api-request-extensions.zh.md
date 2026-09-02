@@ -14,7 +14,7 @@ Status: implemented
 
 ## 决策
 
-`@deepseek-ai/dsh-deepseek-llm-api-extensions` 注册 `ctx.deepseekLlmApiExtensions`，即 `deepseek-official` 请求正文顶层字段的增量注册表。贡献方通过 `register()` 认领一个经声明合并的字段。适配器在序列化确切协议消息后调用 `prepare()`、传入请求取消信号，在 HTTP 前拒绝准备失败或基础字段冲突，合并分离字段，并在 HTTP 2xx 后调用捕获的 `accept()` 事务。即使贡献方忽略信号，注册表也会在取消后停止等待准备。接受失败仍以 `REQUEST_EXTENSION` 使请求失败；传输失败与非 2xx 失败绝不会接受贡献。未挂载注册表的组合会保留可复用基础适配器。随附组合会挂载注册表与两个贡献方：插件包元数据默认开启，会话日志上传默认关闭，需要设置 `session-log-deepseek.enabled: true`。无密钥 `deepseek-official` 回放会使用合成的空基础正文执行准备，并在第一个已记录分片前调用同一接受事务；它保持的是 2xx 后扩展副作用，而非字段字节。
+`@deepseek-ai/dsh-deepseek-llm-api-extensions` 注册 `ctx.deepseekLlmApiExtensions`，即 `deepseek-official` 请求正文顶层字段的增量注册表。贡献方通过 `register()` 认领一个经声明合并的字段。适配器在序列化确切协议消息后调用 `prepare()`、传入请求取消信号，在 HTTP 前拒绝准备失败或基础字段冲突，合并分离字段，并在 HTTP 2xx 后调用捕获的 `accept()` 事务。即使贡献方忽略信号，注册表也会在取消后停止等待准备。接受失败仍以 `REQUEST_EXTENSION` 使请求失败；传输失败与非 2xx 失败绝不会接受贡献。未挂载注册表的组合会保留可复用基础适配器。随附组合会挂载注册表与两个贡献方，二者默认均关闭：插件包清单配置项以 `disabled: true` 交付，会话日志上传需要设置 `session-log-deepseek.enabled: true`。无密钥 `deepseek-official` 回放会使用合成的空基础正文执行准备，并在第一个已记录分片前调用同一接受事务；它保持的是 2xx 后扩展副作用，而非字段字节。
 
 提供方无关的 `llm` 包与 `llm-pi-ai` 不包含任何扩展类型、服务查找、字段合并或接受调用。
 
@@ -28,7 +28,7 @@ Status: implemented
 
 ## 插件包字段
 
-`@deepseek-ai/dsh-plugin-package-inventory-deepseek` 从 `llm` 包家族中拥有默认开启的 `dsh_plugin_packages` 字段。它会读取宿主 Loader 树的存活非 group 配置项，并为存活请求 Agent 读取其 standing preset 树。Node 包解析会定位所属 manifest，无需导出 `./package.json`。普通配置项从其所属树解析；standing preset 根会复现 Loader 对宿主基址的显式覆写，嵌套 include 则保留自身基址。最近的匿名 manifest 会标记松散模块；具名 manifest 必须带有版本。系统以确定性顺序按确切名称／版本对去重，同时存活的不同版本仍会分开保留。
+`@deepseek-ai/dsh-plugin-package-inventory-deepseek` 从 `llm` 包家族中拥有 `dsh_plugin_packages` 字段。它会读取宿主 Loader 树的存活非 group 配置项，并为存活请求 Agent 读取其 standing preset 树。Node 包解析会定位所属 manifest，无需导出 `./package.json`。普通配置项从其所属树解析；standing preset 根会复现 Loader 对宿主基址的显式覆写，嵌套 include 则保留自身基址。最近的匿名 manifest 会标记松散模块；具名 manifest 必须带有版本。系统以确定性顺序按确切名称／版本对去重，同时存活的不同版本仍会分开保留。
 
 禁用、pending、failed、unloading、disposed、结构性、松散非包、普通依赖、编程式子 fiber 与内存动态插件配置项都不属于该包清单。这个定义会报告运行时可以证明的包支撑组合事实，而不会为任意回调发明来源。
 
@@ -85,8 +85,8 @@ Status: implemented
 
 ## 后果
 
-DeepSeek 官方请求会把存活包版本发送到解析后的 `baseURL`，包括已配置 gateway。显式选择启用会话日志后，请求还会携带完整的未接受会话新后缀。这些字段对模型不可见，不增加提示词 token，也不改变 KV Cache，但可能显著增大 HTTP 正文。Manifest 解析、字段冲突、接受记录或提供方 schema 拒绝会使模型请求失败，而不会静默丢弃元数据。
+启用了清单配置项的部署所发出的 DeepSeek 官方请求会把存活包版本发送到解析后的 `baseURL`，包括已配置 gateway。显式选择启用会话日志后，请求还会携带完整的未接受会话新后缀。这些字段对模型不可见，不增加提示词 token，也不改变 KV Cache，但可能显著增大 HTTP 正文。Manifest 解析、字段冲突、接受记录或提供方 schema 拒绝会使模型请求失败，而不会静默丢弃元数据。
 
 `delivery-accepted` 事件会成为权威日志的一部分，并在后续请求中自行交付。崩溃恢复可能重复后缀，但不会根据 assistant 输出推断接受，也不会创建第二份本地游标存储。缺少存活会话的直接调用会省略会话字段；宿主包清单仍然可用。
 
-[DeepSeek 请求身份决策](../feature/2026-08-11-deepseek-request-user-id-header.zh.md)继续拥有 user／session header，且这些 header 仍位于正文之外。[会话遥测决策](../feature/2026-07-23-session-telemetry-otel-revival.zh.md)在另一项变更删除该 seam 与后端之前仍保持当前有效；本请求路径不改变 OTel 捕获或共享模式。
+[移除远程遥测](../simplification/2026-09-02-remove-remote-telemetry.zh.md)撤回了 user／session 请求 header 与 OpenTelemetry 后端；本请求路径从未携带其中任何一项，插件包清单配置项默认关闭也属于该决策。

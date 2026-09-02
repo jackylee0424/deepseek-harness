@@ -1,5 +1,5 @@
 ---
-description: "Package map for the durable session data plane: the persistence seam and its backends, checkpoint policy, projections, log-backed titles, and outbound session telemetry."
+description: "Package map for the durable session data plane: the persistence seam and its backends, checkpoint policy, projections, log-backed titles, and local session telemetry files."
 kind: "package-group"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The session group makes an agent's conversation durable and reusable outside the live loop: the persistence seam stores the event log and restores it on resume, the checkpoint policy keeps requests, tool side effects, and completed steps durable before the next action, projections serve whole log-derived values to client carriers, titles name each session from its content, and telemetry reports session activity outbound. Mount the shipped JSONL persistence provider first, then add the checkpoint policy and any projection, title, or telemetry packages the deployment needs. This page maps the group; every package README owns its contract, and `session-query/` is a sibling group whose read/tool surface consumes persistence independently.
+The session group makes an agent's conversation durable and reusable outside the live loop: the persistence seam stores the event log and restores it on resume, the checkpoint policy keeps requests, tool side effects, and completed steps durable before the next action, projections serve whole log-derived values to client carriers, titles name each session from its content, and telemetry captures session activity into per-session files on this machine; no shipped backend reports anything off the machine. Mount the shipped JSONL persistence provider first, then add the checkpoint policy and any projection, title, or telemetry packages the deployment needs. This page maps the group; every package README owns its contract, and `session-query/` is a sibling group whose read/tool surface consumes persistence independently.
 
 ## Table of Contents
 
@@ -55,8 +55,8 @@ The group splits into four families: durable storage (persistence seam, backends
 
 | Package | Role | ctx key |
 |---|---|---|
-| [`session-telemetry/`](session-telemetry/README.md) | Captures session activity and hands records to a configured reporting backend | `ctx.sessionTelemetry` |
-| [`session-telemetry-otel/`](session-telemetry-otel/README.md) | Delivers telemetry through OpenTelemetry logs in `FULL`, `FEEDBACK_ONLY`, or `DISABLED` mode | registers on `ctx.sessionTelemetry` |
+| [`session-telemetry/`](session-telemetry/README.md) | Captures session activity and hands records to the mounted backend | `ctx.sessionTelemetry` |
+| [`session-telemetry-file/`](session-telemetry-file/README.md) | Appends captured records to `$DSH_HOME/telemetry/<session id>.jsonl` on this machine | registers on `ctx.sessionTelemetry` |
 
 Only one title provider may register at a time; without one, the title service keeps its deterministic fallback. The subsystem pages below are the backend-neutral references for each family.
 
@@ -68,7 +68,7 @@ Only one title provider may register at a time; without one, the title service k
 - [Session persistence subsystem](../../docs/subsystems/persistence.md) — backend-neutral service semantics, the flush checkpoint, and crash recovery.
 - [Session projections subsystem](../../docs/subsystems/session-projection.md) — the projection unit contract and drive semantics.
 - [Session titles subsystem](../../docs/subsystems/session-title.md) — title eligibility, fallback, and provider flow.
-- [Session telemetry subsystem](../../docs/subsystems/session-telemetry.md) — capture, redaction, and delivery modes.
+- [Session telemetry subsystem](../../docs/subsystems/session-telemetry.md) — capture, redaction, and the backend contract.
 - [Session subsystem](../../docs/subsystems/session.md) — the live event log every package in this group persists or derives from.
 
 <a id="dev-note"></a>

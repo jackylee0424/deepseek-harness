@@ -10,6 +10,8 @@ Every deployment that wants harness sessions in an observability stack must hand
 
 ## Decision
 
+This decision no longer stands: [Remove remote telemetry](../simplification/2026-09-02-remove-remote-telemetry.md) deletes the `dsh-session-telemetry-otel` backend, its base-bundle mount, and the `DSH_TELEMETRY_*` switches. The sections below record the decision as it shipped before that removal.
+
 `packages/session/` (formerly `telemetry/`) revives the two reviewed packages under the SDK stance — the harness provides the capability, the deployment configures where records go and owns what leaves in them:
 
 - **`@deepseek-ai/dsh-session-telemetry`** — the seam. `SessionTelemetrySink` (`emit`/`flush?`/`shutdown`), the service-registered `SessionTelemetryBackend` form, and `SessionTelemetryCoordinator` owning capture: live adoption with cursor read-back and the per-append firehose (project → `structuredClone` → redact → `emit`, zero I/O), buffer-free on-demand replay from the canonical log, the fixed first-chunk-per-(turn, step) projection, the live `agent/error` relay, and live dispose-time `shutdown` records.

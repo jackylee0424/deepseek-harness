@@ -32,6 +32,8 @@ function sharingSentence(sharing: SessionTelemetrySharingStatus): string {
       return 'Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.'
     case 'disabled':
       return 'Session sharing is disabled.'
+    case 'local':
+      return 'Session records are captured locally and never shared.'
     /* v8 ignore next 2 -- the seam's closed union cannot reach the default; a future status must be given a sentence here. */
     default:
       return assertNever(sharing)

@@ -7,9 +7,6 @@ permissions:
 
 env:
   PRIMARY_NODE_VERSION: '24'
-  # CI runs must never report to the production telemetry endpoint baked
-  # into apps/cli/cordis.yml (AppCLIEntry disables the row when set).
-  DSH_TELEMETRY_DISABLED: '1'
 
 # Cancel a superseded pull-request run on a new push so a fresh head does not
 # queue a second full 9-job run behind a stale one (paid enterprise runners

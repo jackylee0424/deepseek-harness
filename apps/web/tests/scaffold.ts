@@ -328,15 +328,6 @@ export interface LaunchOptions {
     default: string
   }
   /**
-   * Mount the shipped telemetry row against this exporter URL instead of
-   * disabling it. Used to pin a real backend disclosure in assembled
-   * coverage; point the URL at a local endpoint (a dead port, or a scenario's
-   * own mock collector) so no record leaves the machine.
-   */
-  telemetryUrl?: string
-  /** Uploading mode for the mounted telemetry row. Defaults to `FULL`. */
-  telemetryMode?: 'FULL' | 'FEEDBACK_ONLY'
-  /**
    * Browse through a trusted non-loopback hostname that the browser resolves
    * to loopback (for example `*.localhost`). The test server stays bound to
    * 127.0.0.1; a non-resolving authority fails before Host trust is exercised.
@@ -489,20 +480,6 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // workspace, keeping the composition untouched.
     { id: 'agent-instructions', disabled: true },
     { id: 'session-title-llm', disabled: true },
-    // Fixture sessions must never leave the process: the shipped row defaults
-    // to the production OTLP endpoint (or whatever DSH_TELEMETRY_OTLP_URL
-    // names in the ambient environment). A scenario that pins a real backend
-    // disclosure passes a local dead endpoint instead of disabling the row.
-    options.telemetryUrl === undefined
-      ? { id: 'session-telemetry-otel', disabled: true }
-      : {
-        id: 'session-telemetry-otel',
-        config: {
-          mode: options.telemetryMode ?? 'FULL',
-          exporter: { url: options.telemetryUrl },
-          shutdownTimeoutMillis: 1_000,
-        },
-      },
     // Use an ephemeral port while preserving the shipped compression policy;
     // a patch replaces the row's complete config.
     {

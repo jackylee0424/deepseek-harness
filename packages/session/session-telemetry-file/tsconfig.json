@@ -21,16 +21,10 @@
       "path": "../../core/session"
     },
     {
-      "path": "../../feedback/command-feedback"
-    },
-    {
-      "path": "../../llm/llm"
+      "path": "../../util/home-paths"
     },
     {
       "path": "../session-telemetry"
-    },
-    {
-      "path": "../../identity/anonymous-user-id"
     }
   ]
 }

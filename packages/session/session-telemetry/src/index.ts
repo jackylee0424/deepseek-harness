@@ -134,9 +134,11 @@ export interface SessionTelemetrySink {
  * Deployment-selected session-sharing policy disclosed by a mounted
  * {@link SessionTelemetryBackend} backend to human-facing acknowledgement surfaces (the
  * `/feedback` command's confirmation text). The Service Definition owns the
- * vocabulary so consumers and backends do not depend on a specific provider.
+ * vocabulary so consumers and backends do not depend on a specific provider:
+ * `local` means records stay on this machine, while the other three describe
+ * whether and when records leave the process.
  */
-export type SessionTelemetrySharingStatus = 'full' | 'feedback-only' | 'disabled'
+export type SessionTelemetrySharingStatus = 'full' | 'feedback-only' | 'disabled' | 'local'
 
 /**
  * Loadable form of the backend contract: one implementation per context —

@@ -10,7 +10,7 @@
 
 | 位置 | 命名方式 | 示例 |
 |---|---|---|
-| HTTP 字段名 | 小写 kebab-case；HTTP 匹配仍不区分大小写 | `user-agent`, `x-deepseek-harness-session-id` |
+| HTTP 字段名 | 小写 kebab-case；HTTP 匹配仍不区分大小写 | `user-agent`, `x-deepseek-harness-compact` |
 | DeepSeek 请求正文扩展字段 | 使用保留 `dsh_` 前缀的 snake case | `dsh_plugin_packages`, `dsh_session_log` |
 | DSH 持有的嵌套 JSON 成员 | Camel case | `afterSeq`, `throughSeq`, `sessionId` |
 | 带标签的值 | 使用 kebab-case 字符串；持久事件采用 `domain/action` | `session-log-deepseek/delivery-accepted` |
@@ -24,11 +24,10 @@
 | 标头 | 出现条件 | 值 |
 |---|---|---|
 | `user-agent` | 每个提供方 HTTP 请求，包括 Files API 操作 | 采用 `product/version (+url)` 形式的应用身份；默认产品为 `deepseek-harness` |
-| `x-deepseek-harness-user-id` | 每个已授权的聊天补全请求 | 已解析 Harness home 的稳定匿名 UUID |
-| `x-deepseek-harness-session-id` | 携带会话 id 的聊天补全请求 | 确切的请求 `sessionId` 字符串 |
+
 | `x-deepseek-harness-compact` | 用途为 `compaction` 的聊天补全请求 | 字面字符串 `1` |
 
-凭据失败发生在解析匿名用户 id 之前，因此未授权请求既不会发送这些标头，也不会创建身份文件。没有会话的直接请求会省略 `x-deepseek-harness-session-id`。会话标题请求没有额外的用途标头；请求携带 `sessionId` 时，仍然适用普通的会话 id 规则。
+任何请求都不携带 harness 用户或会话身份标头；`GenerateOptions.sessionId` 只会到达正文扩展贡献方。会话标题请求没有额外的用途标头。
 
 ## 正文扩展事务
 
@@ -40,7 +39,7 @@
 
 ## `dsh_plugin_packages`
 
-[`@deepseek-ai/dsh-plugin-package-inventory-deepseek`](../packages/llm/plugin-package-inventory-deepseek/README.zh.md) 贡献完整存活的 Loader-backed 插件包清单。该字段默认启用。
+[`@deepseek-ai/dsh-plugin-package-inventory-deepseek`](../packages/llm/plugin-package-inventory-deepseek/README.zh.md) 贡献完整存活的 Loader-backed 插件包清单。该贡献方配置项在所有随附 profile 中均为 `disabled: true`；由部署 overlay 启用。
 
 ```json
 {
@@ -154,6 +153,6 @@
 
 ## 暴露内容与接收方要求
 
-请求标头会暴露 Harness 应用版本、一个匿名 Harness-home 身份和可选的会话身份。`dsh_plugin_packages` 会暴露存活 npm 包的名称与版本。启用后，`dsh_session_log` 可能暴露会话工作目录、系统提示词快照、用户与 assistant 内容、原始 assistant 分片、工具参数与结果、压缩摘要、反馈和插件持有的事件。适配器 API key 不是会话事件，因此不会进入该字段。通过 `baseURL` 选择的网关会收到与官方端点相同的值。
+请求标头只会暴露 Harness 应用版本。启用后，`dsh_plugin_packages` 会暴露存活 npm 包的名称与版本。启用后，`dsh_session_log` 可能暴露会话工作目录、系统提示词快照、用户与 assistant 内容、原始 assistant 分片、工具参数与结果、压缩摘要、反馈和插件持有的事件。适配器 API key 不是会话事件，因此不会进入该字段。通过 `baseURL` 选择的网关会收到与官方端点相同的值。
 
 接收方按名称定位扩展字段，按各字段自己的 `version` 分派，保留不同的包版本，并忽略 JSON 成员顺序。会话日志接收方必须先校验连续序号范围，再解释事件类型。遇到不带 `ignorable: true` 的未知权威事件时，接收方无法进行无损重建。即使缺少注册表或某项贡献，基础请求仍然可用；字段缺失表示该项贡献不适用于本次请求。
