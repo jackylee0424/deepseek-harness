@@ -413,10 +413,16 @@ export interface Config {
    * {@link DEFAULT_PROGRESS_TIMEOUT_MS}.
    */
   progressTimeoutMs?: number
+  /**
+   * Open a page a flow names in this host's default browser. Defaults to
+   * `true`; a launch over SSH suppresses it regardless, because the operator's
+   * browser is elsewhere. The acknowledgement carries the URL either way.
+   */
+  openBrowser?: boolean
 }
 ```
 
-来源：[`packages/credentials/command-login/src/index.ts:34`](../packages/credentials/command-login/src/index.ts)
+来源：[`packages/credentials/command-login/src/index.ts:36`](../packages/credentials/command-login/src/index.ts)
 
 <a id="deepseek-aidsh-compaction-basic"></a>
 
@@ -3171,7 +3177,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/bundle/web-app/src/index.ts:44`](../packages/bundle/web-app/src/index.ts)
+来源：[`packages/bundle/web-app/src/index.ts:42`](../packages/bundle/web-app/src/index.ts)
 
 <a id="deepseek-aidsh-web-fetch-http"></a>
 
@@ -3450,6 +3456,7 @@ export interface Config {
 - `@deepseek-ai/dsh-experimental-webworker-runtime`（[`packages/experimental/webworker-runtime/src/index.ts`](../packages/experimental/webworker-runtime/src/index.ts)）
 - `@deepseek-ai/dsh-home-paths`（[`packages/util/home-paths/src/index.ts`](../packages/util/home-paths/src/index.ts)）
 - `@deepseek-ai/dsh-hook-protocol`（[`packages/hooks/hook-protocol/src/index.ts`](../packages/hooks/hook-protocol/src/index.ts)）
+- `@deepseek-ai/dsh-host-browser-open`（[`packages/host/browser-open/src/index.ts`](../packages/host/browser-open/src/index.ts)）
 - `@deepseek-ai/dsh-launch-environment`（[`packages/util/launch-environment/src/index.ts`](../packages/util/launch-environment/src/index.ts)）
 - `@deepseek-ai/dsh-llm-mock-server`（[`packages/test-support/llm-mock-server/src/index.ts`](../packages/test-support/llm-mock-server/src/index.ts)）
 - `@deepseek-ai/dsh-loader-smoke`（[`packages/test-support/loader-smoke/src/index.ts`](../packages/test-support/loader-smoke/src/index.ts)）

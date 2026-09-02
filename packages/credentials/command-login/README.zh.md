@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-command-login` 让你在对话输入框中而不是设置表单里登录提供方账户：`/login` 列出所有提供登录的提供方以及是否已存储凭据，`/login <provider>` 启动该提供方的授权 flow 并回显其第一条指示，`/login <provider> <answer>` 回答 flow 正在等待的问题——登录方式、粘贴的代码。`/logout <provider>` 撤回正在进行的尝试并删除已存储的记录。当凭据只能由人取得时选择它，例如 `openai-codex` 路由背后的 ChatGPT OAuth 授权；普通 API 密钥则在 Models 页面输入。两个命令都不会把输入记录进会话日志，因此粘贴的代码或密钥绝不会进入会话记录。
+`dsh-command-login` 让你在对话输入框中而不是设置表单里登录提供方账户：`/login` 列出所有提供登录的提供方以及是否已存储凭据，`/login <provider>` 启动该提供方的授权 flow 并回显其第一条指示，`/login <provider> <answer>` 回答 flow 正在等待的问题——登录方式、粘贴的代码。`/logout <provider>` 撤回正在进行的尝试并删除已存储的记录。flow 指名的页面会在运行 harness 的那台机器的默认浏览器中打开，除非它是通过 SSH 启动的。当凭据只能由人取得时选择它，例如 `openai-codex` 路由背后的 ChatGPT OAuth 授权；普通 API 密钥则在 Models 页面输入。两个命令都不会把输入记录进会话日志，因此粘贴的代码或密钥绝不会进入会话记录。
 
 ## 目录
 
@@ -38,11 +38,13 @@ kind: "package-reference"
   name: '@deepseek-ai/dsh-command-login'
   config:
     progressTimeoutMs: 5000   # optional; how long one invocation waits for the flow's next step
+    openBrowser: true         # optional; open a page the flow names on this host
 ```
 
 | 字段 | 默认值 | 含义 |
 |---|---|---|
 | `progressTimeoutMs` | `5000` | 一次 `/login` 调用在用已有内容作答之前等待 flow 下一条通知或问题的时长 |
+| `openBrowser` | `true` | 在本宿主的默认浏览器中打开 flow 指名的页面；SSH 启动会抑制它 |
 
 生成的[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-command-login)是所有可接受字段的详尽来源。
 
@@ -57,7 +59,7 @@ kind: "package-reference"
 | `/login <provider> <answer>` | 回答待回答的问题：选择题用选项 id 或标签，文本或机密问题用输入的值 |
 | `/logout <provider>` | 撤回正在进行的尝试并删除已存储的凭据 |
 
-每条确认都会指名提供方及其状态，然后是 flow 的最新通知——flow 提供时带有 `Open: <url>` 与 `Code: <code>` 行——以及待回答的问题和回答它的确切命令。命令返回后尝试仍在进行；在浏览器中打开的页面无需再输入命令即可完成它，下一次 `/login <provider>` 会报告 `signed in.`、`sign-in cancelled.` 或 `sign-in failed: <reason>`。
+每条确认都会指名提供方及其状态，然后是 flow 的最新通知——flow 提供时带有 `Open: <url>` 与 `Code: <code>` 行——在该页面的交接结算后还有一行 `Browser: opened automatically` 或 `Browser: could not open (<reason>)`，以及待回答的问题和回答它的确切命令。命令返回后尝试仍在进行；在浏览器中打开的页面无需再输入命令即可完成它，下一次 `/login <provider>` 会报告 `signed in.`、`sign-in cancelled.` 或 `sign-in failed: <reason>`。
 
 -----
 
@@ -117,7 +119,7 @@ kind: "package-reference"
 
 - **仅限命令适配器**——headless、ACP 与 JSON-RPC 表面没有命令平面，因此那里的登录需要另一个 surface。
 - **同时只能看到一个问题**——快速连续提出多个问题的 flow 只显示最新的一个；更早的问题通过同一命令按顺序回答。
-- **不会自动打开浏览器**——flow 指名的页面以文本返回，由人自行打开；浏览器回调方式需要该浏览器能访问 harness 宿主的回调端口。
+- **浏览器在 harness 宿主上打开**——页面在 harness 运行的地方打开，而不是远程浏览器客户端所在的地方，SSH 启动则什么也不打开；行中始终携带 URL，浏览器回调方式需要该浏览器能访问 harness 宿主的回调端口。
 - **机密答案不会回显，但仍在输入框中输入**——`secret` 问题通过同一命令行回答；输入不会进入会话日志，但不会从输入框自身的历史中排除。
 
 <a id="dev-note"></a>

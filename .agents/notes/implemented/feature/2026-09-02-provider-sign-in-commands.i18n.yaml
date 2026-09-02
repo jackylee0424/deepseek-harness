@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-02-provider-sign-in-commands.md
-2026-09-02-provider-sign-in-commands.md: b2a3a368f21e0fcaa93cc09ee493de32c0e13b98
-2026-09-02-provider-sign-in-commands.zh.md: 3cfc346fe42d32106b6010276926b4795adeaa86
+2026-09-02-provider-sign-in-commands.md: aa37d1adbbfb8535697c3a5b396e374a2649d940
+2026-09-02-provider-sign-in-commands.zh.md: dac52a6dd6b7cd9ca816de3221ded559161deaa9

@@ -26,7 +26,7 @@
 /login openai-codex
 ```
 
-命令会回答 flow 的第一个问题，即登录方式。回复 `/login openai-codex browser` 通过运行 harness 的那台机器上的浏览器登录（回调落在 `localhost:1455`），或在浏览器位于别处时回复 `/login openai-codex device_code`。下一条回答会携带要打开的页面，设备代码方式还会携带要在那里输入的代码。若浏览器无法访问回调，用 `/login openai-codex <value>` 粘贴重定向 URL 或授权码。单独的 `/login` 会列出所有提供登录的提供方及其状态，`/logout openai-codex` 则撤回正在进行的尝试并删除已存储的凭据。登录后，从选择器中挑选一个 GPT 模型；该选择会保存为之后会话的默认值。
+命令会回答 flow 的第一个问题，即登录方式。回复 `/login openai-codex browser` 通过运行 harness 的那台机器上的浏览器登录（回调落在 `localhost:1455`），或在浏览器位于别处时回复 `/login openai-codex device_code`。下一条回答会携带要打开的页面，设备代码方式还会携带要在那里输入的代码；在运行 harness 的那台机器上，该页面还会自行在默认浏览器中打开。若浏览器无法访问回调，用 `/login openai-codex <value>` 粘贴重定向 URL 或授权码。单独的 `/login` 会列出所有提供登录的提供方及其状态，`/logout openai-codex` 则撤回正在进行的尝试并删除已存储的凭据。登录后，从选择器中挑选一个 GPT 模型；该选择会保存为之后会话的默认值。
 
 ## 添加自定义提供方
 

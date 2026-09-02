@@ -7,9 +7,10 @@
  * `/login <provider>` reports the latest notice. `/logout <provider>` withdraws
  * a running attempt and deletes the stored record. An attempt keeps running
  * after its command returns, so the transcript row carries the page or code
- * the human must act on and a later invocation reports the outcome. Neither
- * command records its input in the session log, because an answer can be a
- * one-time code or a key.
+ * the human must act on and a later invocation reports the outcome. A page a
+ * flow names is also opened in this host's default browser unless the launch
+ * came over SSH. Neither command records its input in the session log,
+ * because an answer can be a one-time code or a key.
  * @module @deepseek-ai/dsh-command-login
  */
 
@@ -26,6 +27,7 @@ import {
 } from '@deepseek-ai/dsh-authorization'
 import type { CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
 import { credentialKeyId, type CredentialKey, type CredentialProvider } from '@deepseek-ai/dsh-credentials'
+import { launchedThroughSsh, openBrowser } from '@deepseek-ai/dsh-host-browser-open'
 
 export const name = 'command-login'
 export const inject = ['commands']
@@ -39,15 +41,25 @@ export interface Config {
    * {@link DEFAULT_PROGRESS_TIMEOUT_MS}.
    */
   progressTimeoutMs?: number
+  /**
+   * Open a page a flow names in this host's default browser. Defaults to
+   * `true`; a launch over SSH suppresses it regardless, because the operator's
+   * browser is elsewhere. The acknowledgement carries the URL either way.
+   */
+  openBrowser?: boolean
 }
 
 /** Schemastery validator for {@link Config}; cordis runs it before the plugin starts. */
 export const Config: z<Config> = z.object({
   progressTimeoutMs: z.number(),
+  openBrowser: z.boolean(),
 })
 
 /** Wait applied when the configuration names no `progressTimeoutMs`. */
 export const DEFAULT_PROGRESS_TIMEOUT_MS = 5_000
+
+/** Test hook for the native browser handoff; production never mutates it. */
+export const internals: { openBrowser: (url: string) => Promise<void> } = { openBrowser }
 
 const USAGE = 'Usage: /login — list sign-ins; /login <provider> [method] — start one; /login <provider> <answer> — answer its question; /logout <provider>'
 
@@ -58,6 +70,16 @@ function resolveProgressTimeout(config: Config): number {
     throw new Error(`command-login: progressTimeoutMs must be a non-negative finite number, got ${String(value)}`)
   }
   return value
+}
+
+/** Resolve whether pages a flow names are handed to this host's browser. */
+function resolveOpenBrowser(config: Config): boolean {
+  return config.openBrowser ?? true
+}
+
+/** One line for a failure of any origin. */
+function reasonOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
 
 /** A question the flow asked that no invocation has answered yet. */
@@ -75,9 +97,13 @@ interface Attempt {
   settlement: AuthorizationSettlement | 'running'
   /** The failure message once `settlement` is `failed`; empty otherwise. */
   failure: string
-  /** Bumped on every notice, question, answer, or settlement; waiters compare against it. */
+  /** Bumped on every notice, question, answer, settlement, or browser outcome; waiters compare against it. */
   version: number
   readonly waiters: Set<() => void>
+  /** Outcome of handing the latest page to the browser, once known. */
+  browser: string | undefined
+  /** The handoff still in flight, so an invocation can wait for its outcome. */
+  opening: Promise<void> | undefined
 }
 
 /** The two services every invocation needs; absent in a composition without sign-ins. */
@@ -147,12 +173,34 @@ function ask(attempt: Attempt, prompt: AuthorizationPrompt): Promise<string> {
   })
 }
 
+/** Hand one page to this host's browser and record the outcome for the status text. */
+function handOff(attempt: Attempt, url: string): Promise<void> {
+  return internals.openBrowser(url).then(
+    () => { attempt.browser = 'opened automatically' },
+    (error: unknown) => { attempt.browser = `could not open (${reasonOf(error)}); open the page yourself` },
+  ).then(() => {
+    attempt.opening = undefined
+    wake(attempt)
+  })
+}
+
+/** Wait for an in-flight browser handoff, but never longer than the progress wait. */
+function settleHandoff(attempt: Attempt, timeoutMs: number): Promise<void> {
+  const opening = attempt.opening
+  if (opening === undefined) return Promise.resolve()
+  return Promise.race([opening, new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, timeoutMs)
+    timer.unref()
+  })])
+}
+
 /** Start one attempt and track it; the returned attempt keeps updating after this returns. */
 function startAttempt(
   authorization: AuthorizationService,
   attempts: Map<CredentialKey, Attempt>,
   key: CredentialKey,
   method: string | undefined,
+  handoff: boolean,
 ): Attempt {
   const attempt: Attempt = {
     key,
@@ -162,6 +210,8 @@ function startAttempt(
     failure: '',
     version: 0,
     waiters: new Set(),
+    browser: undefined,
+    opening: undefined,
   }
   attempts.set(key, attempt)
   const settle = (settlement: AuthorizationSettlement, failure: string): void => {
@@ -177,14 +227,14 @@ function startAttempt(
     interaction: {
       notify: (notice) => {
         attempt.notices.push(notice)
+        if (handoff && notice.url !== undefined) attempt.opening = handOff(attempt, notice.url)
         wake(attempt)
       },
       prompt: prompt => ask(attempt, prompt),
     },
   }).then(
     (outcome) => { settle(outcome.status, '') },
-    /* v8 ignore next -- the seam rejects with Error instances; the fallback keeps a foreign rejection readable. */
-    (error: unknown) => { settle('failed', error instanceof Error ? error.message : String(error)) },
+    (error: unknown) => { settle('failed', reasonOf(error)) },
   )
   return attempt
 }
@@ -244,6 +294,7 @@ function statusText(entry: AuthorizationEntry, attempt: Attempt): string {
     if (notice.url !== undefined) lines.push(`Open: ${notice.url}`)
     if (notice.code !== undefined) lines.push(`Code: ${notice.code}`)
   }
+  if (attempt.browser !== undefined) lines.push(`Browser: ${attempt.browser}`)
   if (attempt.pending !== undefined) lines.push(questionText(entry, attempt.pending.prompt))
   return lines.join('\n')
 }
@@ -273,6 +324,7 @@ async function login(
   ctx: Context,
   attempts: Map<CredentialKey, Attempt>,
   timeoutMs: number,
+  handoff: boolean,
   invocation: CommandInvocation,
 ): Promise<CommandResult> {
   const services = servicesOf(ctx)
@@ -300,6 +352,7 @@ async function login(
     const since = running.version
     pending.resolve(resolved)
     await waitForProgress(running, since, timeoutMs)
+    await settleHandoff(running, timeoutMs)
     return { kind: 'success', text: statusText(entry, running) }
   }
   if (entry.inFlight) {
@@ -322,8 +375,9 @@ async function login(
       return { kind: 'error', text: `${labelOf(entry)} is not signing in, so "${answer}" answers nothing. Start with /login ${credentialKeyId(entry.key)} [method]; methods: ${methods}` }
     }
   }
-  const attempt = startAttempt(authorization, attempts, entry.key, method)
+  const attempt = startAttempt(authorization, attempts, entry.key, method, handoff)
   await waitForProgress(attempt, 0, timeoutMs)
+  await settleHandoff(attempt, timeoutMs)
   return { kind: 'success', text: statusText(entry, attempt) }
 }
 
@@ -360,13 +414,16 @@ async function logout(
  */
 export function apply(ctx: Context, config: Config): void {
   const timeoutMs = resolveProgressTimeout(config)
+  // The page belongs to this host; under SSH the operator's browser is on
+  // another machine, so only the URL is reported there.
+  const handoff = resolveOpenBrowser(config) && !launchedThroughSsh(ctx)
   const attempts = new Map<CredentialKey, Attempt>()
   ctx.commands.register({
     name: 'login',
     description: 'sign in to a provider account',
     input: { hint: '[provider] [method or answer]' },
     recordInput: false,
-    handler: invocation => login(ctx, attempts, timeoutMs, invocation),
+    handler: invocation => login(ctx, attempts, timeoutMs, handoff, invocation),
   })
   ctx.commands.register({
     name: 'logout',

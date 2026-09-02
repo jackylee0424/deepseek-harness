@@ -8,7 +8,7 @@
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
@@ -19,6 +19,7 @@ import { credentialKey } from '@deepseek-ai/dsh-credentials'
 import LocalCredentialProvider from '@deepseek-ai/dsh-credentials-local'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import * as commandLogin from '@deepseek-ai/dsh-command-login'
+import { internals } from '@deepseek-ai/dsh-command-login'
 
 const KEY = credentialKey('test', 'acme')
 
@@ -39,10 +40,19 @@ interface Harness {
 
 const temps: string[] = []
 const contexts: Context[] = []
+const originalOpenBrowser = internals.openBrowser
+
+beforeEach(() => {
+  vi.stubEnv('SSH_CONNECTION', '')
+  vi.stubEnv('SSH_TTY', '')
+  internals.openBrowser = vi.fn(async () => {})
+})
 
 afterEach(async () => {
   for (const ctx of contexts.splice(0)) await ctx.fiber.dispose()
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })
+  internals.openBrowser = originalOpenBrowser
+  vi.unstubAllEnvs()
 })
 
 function stubAgent(ctx: Context): Agent {
@@ -116,7 +126,9 @@ function scriptedFlow(ctx: Context, behavior: Behavior, runs: string[]) {
   }
 }
 
-async function harness(options: { authorization?: boolean; flow?: boolean; progressTimeoutMs?: number } = {}): Promise<Harness> {
+async function harness(
+  options: { authorization?: boolean; flow?: boolean; progressTimeoutMs?: number; openBrowser?: boolean } = {},
+): Promise<Harness> {
   const dir = mkdtempSync(join(tmpdir(), 'dsh-command-login-'))
   temps.push(dir)
   const ctx = new Context()
@@ -131,7 +143,10 @@ async function harness(options: { authorization?: boolean; flow?: boolean; progr
     await ctx.plugin(AuthorizationService)
     if (options.flow !== false) ctx.authorization.registerFlow(scriptedFlow(ctx, behavior, runs))
   }
-  await ctx.plugin(commandLogin, options.progressTimeoutMs === undefined ? {} : { progressTimeoutMs: options.progressTimeoutMs })
+  await ctx.plugin(commandLogin, {
+    ...options.progressTimeoutMs === undefined ? {} : { progressTimeoutMs: options.progressTimeoutMs },
+    ...options.openBrowser === undefined ? {} : { openBrowser: options.openBrowser },
+  })
   const agent = stubAgent(ctx)
   ctx.agents.register(agent)
   return { ctx, agent, behavior, runs }
@@ -198,6 +213,9 @@ describe('/login', () => {
     const paged = await run(test, '/login acme Device code login')
     expect(paged.text).toContain('Open: https://acme.test/device')
     expect(paged.text).toContain('Code: ABCD-1234')
+    expect(paged.text).toContain('Browser: opened automatically')
+    expect(vi.mocked(internals.openBrowser).mock.calls.map(([url]) => url))
+      .toEqual(['https://acme.test/auth?via=device_code', 'https://acme.test/device'])
     expect(paged.text).toContain('Paste the code:\nAnswer with /login acme <value> (for example code)')
 
     const status = await run(test, '/login acme')
@@ -262,6 +280,49 @@ describe('/login', () => {
     await expectResult(test, '/login acme', 'success', 'signing in through another surface')
     test.ctx.authorization.cancel(KEY)
     await expect(foreign).resolves.toEqual({ status: 'cancelled' })
+  })
+})
+
+describe('browser handoff', () => {
+  it('reports a failed handoff, with any failure shape, and keeps the URL in the row', async () => {
+    const test = await harness({ openBrowser: true })
+    internals.openBrowser = vi.fn(async () => { throw new Error('no desktop') })
+    await run(test, '/login acme')
+    const paged = await run(test, '/login acme browser')
+    expect(paged.text).toContain('Open: https://acme.test/auth?via=browser')
+    expect(paged.text).toContain('Browser: could not open (no desktop); open the page yourself')
+
+    internals.openBrowser = vi.fn(async () => { throw 'desktop unavailable' })
+    await run(test, '/login acme 1')
+    await run(test, '/logout acme')
+    await expectResult(test, '/login acme', 'success', 'signed in.')
+    await run(test, '/login acme')
+    await expectResult(test, '/login acme browser', 'success', 'could not open (desktop unavailable)')
+  })
+
+  it('answers before a slow handoff settles and reports it afterwards', async () => {
+    const test = await harness({ progressTimeoutMs: 50 })
+    let finish!: () => void
+    internals.openBrowser = vi.fn(() => new Promise<void>((resolve) => { finish = resolve }))
+    await run(test, '/login acme')
+    const paged = await run(test, '/login acme browser')
+    expect(paged.text).not.toContain('Browser:')
+    finish()
+    await expect.poll(async () => (await run(test, '/login acme')).text).toContain('Browser: opened automatically')
+  })
+
+  it('stays off when configured off or when the launch came over SSH', async () => {
+    const off = await harness({ openBrowser: false })
+    await run(off, '/login acme')
+    await run(off, '/login acme browser')
+    expect(internals.openBrowser).not.toHaveBeenCalled()
+
+    vi.stubEnv('SSH_CONNECTION', '10.0.0.2 51234 10.0.0.9 22')
+    const remote = await harness({ openBrowser: true })
+    await run(remote, '/login acme')
+    const paged = await run(remote, '/login acme browser')
+    expect(paged.text).toContain('Open: https://acme.test/auth?via=browser')
+    expect(internals.openBrowser).not.toHaveBeenCalled()
   })
 })
 

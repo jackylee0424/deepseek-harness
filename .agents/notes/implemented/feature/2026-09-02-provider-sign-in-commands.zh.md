@@ -13,7 +13,7 @@ Status: implemented
 `dsh-base` 在凭据存储之后挂载 `@deepseek-ai/dsh-authorization`，使每个适配器 flow 都在每个基于 base 的 profile 中注册，并挂载 `@deepseek-ai/dsh-command-login`，由它拥有作为 seam 对话 surface 的 `/login` 与 `/logout`。
 
 - `/login` 列出每个已注册 flow 及其已存储记录的状态；`/login <provider> [method]` 通过 `ctx.authorization.begin()` 启动一次尝试，其交互按凭据键追加通知并暂存问题；`/login <provider> <answer>` 解决暂存的问题，`select` 选项按 id 或标签匹配；`/logout <provider>` 通过 seam 取消并删除记录。
-- 命令返回后尝试仍在进行。每次调用等待 `progressTimeoutMs`（默认五秒）以获取 flow 的下一条通知或问题，然后以提供方状态、最新通知（存在时带 `Open:` 与 `Code:` 行）以及待回答问题和回答它的命令作答。flow 通过问题自身信号撤回的问题以 `WITHDRAWN` 拒绝，这不是拒答；结算时仍未回答的问题被丢弃。
+- 命令返回后尝试仍在进行。每次调用等待 `progressTimeoutMs`（默认五秒）以获取 flow 的下一条通知或问题，然后以提供方状态、最新通知（存在时带 `Open:` 与 `Code:` 行）以及待回答问题和回答它的命令作答。flow 通过问题自身信号撤回的问题以 `WITHDRAWN` 拒绝，这不是拒答；结算时仍未回答的问题被丢弃。指名页面的通知会通过 `dsh-host-browser-open`——从 Web app 启动交接中提取的辅助库，带同样的 SSH 守卫——交给本宿主的默认浏览器，除非 `openBrowser` 已关闭；确认文本会在 URL 旁报告 `Browser: opened automatically` 或失败原因。
 - 两个命令都设置 `recordInput: false`，因此粘贴的代码或密钥绝不会进入会话日志；`command/done` 文本只携带 flow 的指示。
 - 提供方指南记录了订阅路径：在 Models 页面以空密钥声明 `openai-codex` 路由，运行 `/login openai-codex`，选择 `browser` 或 `device_code`，然后在选择器中挑选一个 GPT 模型。
 
@@ -29,8 +29,10 @@ Status: implemented
 
 **导入 Codex CLI 的 `auth.json` 令牌。** 拒绝，因为这会把 harness 与另一款产品的磁盘格式和刷新语义耦合；pi-ai 随附的 OAuth flow 使用同一个客户端，并产出适配器自己会刷新的记录。
 
+**打印页面并把打开它留给人。** 拒绝，因为实际使用表明 OAuth URL 在可滚动的会话记录行中长达数百个字符；Web app 本已在宿主上打开自己的启动 URL，因此同样的交接与 SSH 守卫也服务于登录页面。
+
 **自动回答 flow 的登录方式问题。** 拒绝，因为正确的方式取决于浏览器在哪里：harness 宿主上的浏览器回调是常见的本地情形，设备代码是远程情形，只有人才知道是哪一种。
 
 ## 后果
 
-每个基于 base 的 profile 都会注册 pi-ai 登录 flow，并在存在命令适配器的地方暴露 `/login` 与 `/logout`；headless、ACP 与 JSON-RPC 表面仍没有登录路径。已登录的 `openai-codex` 路由让选择器提供订阅所含的 GPT 模型，保存的选择使其中之一成为默认值。机密答案经由输入框传递，对日志隐藏但不对输入框自身的历史隐藏。命令菜单 golden 与 base 配置项清单随两个新配置项而变化。
+每个基于 base 的 profile 都会注册 pi-ai 登录 flow，并在存在命令适配器的地方暴露 `/login` 与 `/logout`；headless、ACP 与 JSON-RPC 表面仍没有登录路径。已登录的 `openai-codex` 路由让选择器提供订阅所含的 GPT 模型，保存的选择使其中之一成为默认值。机密答案经由输入框传递，对日志隐藏但不对输入框自身的历史隐藏。登录页面在 harness 宿主上打开，因此远程浏览器客户端会看到它在服务器上打开；SSH 启动只报告 URL。命令菜单 golden 与 base 配置项清单随两个新配置项而变化。

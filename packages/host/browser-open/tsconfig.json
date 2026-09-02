@@ -15,19 +15,10 @@
       "path": "../../../vendor/cordis"
     },
     {
-      "path": "../../../vendor/schemastery"
+      "path": "../../util/launch-environment"
     },
     {
-      "path": "../authorization"
-    },
-    {
-      "path": "../credentials"
-    },
-    {
-      "path": "../../interaction/commands"
-    },
-    {
-      "path": "../../host/browser-open"
+      "path": "../../subprocess/subprocess"
     }
   ]
 }

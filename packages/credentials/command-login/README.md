@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-command-login` lets you sign in to a provider account from the conversation composer instead of a settings form: `/login` lists every provider that offers a sign-in and whether a credential is stored, `/login <provider>` starts that provider's authorization flow and echoes its first instruction, and `/login <provider> <answer>` answers the question the flow is waiting on — a login method, a pasted code. `/logout <provider>` withdraws a running attempt and deletes the stored record. Choose it for credentials that only a human can obtain, such as the ChatGPT OAuth grant behind the `openai-codex` route; a plain API key is entered on the Models page instead. Neither command records its input in the session log, so a pasted code or key never enters the transcript.
+`dsh-command-login` lets you sign in to a provider account from the conversation composer instead of a settings form: `/login` lists every provider that offers a sign-in and whether a credential is stored, `/login <provider>` starts that provider's authorization flow and echoes its first instruction, and `/login <provider> <answer>` answers the question the flow is waiting on — a login method, a pasted code. `/logout <provider>` withdraws a running attempt and deletes the stored record. A page the flow names opens in the default browser of the machine running the harness, unless it was launched over SSH. Choose it for credentials that only a human can obtain, such as the ChatGPT OAuth grant behind the `openai-codex` route; a plain API key is entered on the Models page instead. Neither command records its input in the session log, so a pasted code or key never enters the transcript.
 
 ## Table of Contents
 
@@ -38,11 +38,13 @@ Choose it when a provider's credential comes from a conversation with a human �
   name: '@deepseek-ai/dsh-command-login'
   config:
     progressTimeoutMs: 5000   # optional; how long one invocation waits for the flow's next step
+    openBrowser: true         # optional; open a page the flow names on this host
 ```
 
 | Field | Default | Meaning |
 |---|---|---|
 | `progressTimeoutMs` | `5000` | How long one `/login` invocation waits for the flow's next notice or question before answering with what it has |
+| `openBrowser` | `true` | Open a page the flow names in this host's default browser; an SSH launch suppresses it |
 
 The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-command-login) is the exhaustive source for every accepted field.
 
@@ -57,7 +59,7 @@ Type `/login` to see the providers that offer a sign-in, each as `<provider> —
 | `/login <provider> <answer>` | Answer the pending question: an option id or label for a choice, the typed value for a text or secret question |
 | `/logout <provider>` | Withdraw a running attempt and delete the stored credential |
 
-Each acknowledgement names the provider and its state, then the flow's latest notice — with `Open: <url>` and `Code: <code>` lines when the flow supplied them — and the pending question with the exact command that answers it. An attempt keeps running after the command returns; a page opened in a browser can complete it without another command, and the next `/login <provider>` reports `signed in.`, `sign-in cancelled.`, or `sign-in failed: <reason>`.
+Each acknowledgement names the provider and its state, then the flow's latest notice — with `Open: <url>` and `Code: <code>` lines when the flow supplied them — a `Browser: opened automatically` or `Browser: could not open (<reason>)` line once the handoff of that page has settled, and the pending question with the exact command that answers it. An attempt keeps running after the command returns; a page opened in a browser can complete it without another command, and the next `/login <provider>` reports `signed in.`, `sign-in cancelled.`, or `sign-in failed: <reason>`.
 
 -----
 
@@ -117,7 +119,7 @@ These limits describe what a sign-in through the composer can and cannot do. The
 
 - **Command adapters only** — headless, ACP, and JSON-RPC surfaces have no command plane, so a sign-in there needs another surface.
 - **One question at a time is visible** — a flow that asks several questions in quick succession shows only the latest; earlier ones are answered in order through the same command.
-- **No automatic browser** — a page the flow names is returned as text for the human to open; a browser-callback method needs that browser to reach the harness host's callback port.
+- **The browser opens on the harness host** — a page opens where the harness runs, not where a remote browser client sits, and an SSH launch opens nothing; the row always carries the URL, and a browser-callback method needs that browser to reach the harness host's callback port.
 - **Secret answers echo nowhere but are typed in the composer** — `secret` prompts are answered through the same command line; the input is kept out of the session log but not out of the composer's own history.
 
 <a id="dev-note"></a>

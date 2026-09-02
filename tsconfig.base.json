@@ -146,6 +146,7 @@
       "@deepseek-ai/dsh-host-webserver": ["./packages/host/webserver/src"],
       "@deepseek-ai/dsh-host-frontend-static": ["./packages/host/frontend-static/src"],
       "@deepseek-ai/dsh-host-plugin-inventory": ["./packages/host/plugin-inventory/src"],
+      "@deepseek-ai/dsh-host-browser-open": ["./packages/host/browser-open/src"],
       "@deepseek-ai/dsh-host-plugin-inventory/types": ["./packages/host/plugin-inventory/src/types.ts"],
       "@deepseek-ai/dsh-client-ui-slots": ["./packages/client/ui-slots/src"],
       "@deepseek-ai/dsh-client-ui-attachment": ["./packages/client/ui-attachment/src"],
