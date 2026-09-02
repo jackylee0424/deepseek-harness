@@ -103,6 +103,12 @@
     - id: credentials
       name: '@deepseek-ai/dsh-credentials-local'
 
+    # Sign-in flows for credentials only a human can obtain (an OAuth grant
+    # such as the ChatGPT subscription behind the pi-ai `openai-codex` route).
+    # Adapters register their flows here; `/login` and `/logout` run them.
+    - id: authorization
+      name: '@deepseek-ai/dsh-authorization'
+
     # The pi-ai multi-provider twin, mounted dormant: zero routes (and no extra
     # models in the picker) until a `llm-pi-ai:` settings section supplies provider
     # profiles — then those routes register live, keys resolving per request
@@ -272,6 +278,9 @@
 
     - id: command-feedback
       name: '@deepseek-ai/dsh-command-feedback'
+
+    - id: command-login
+      name: '@deepseek-ai/dsh-command-login'
 
     - id: goal
       name: '@deepseek-ai/dsh-goal'

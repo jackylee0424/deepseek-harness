@@ -18,6 +18,16 @@
 
 使用原生认证的提供方需要各自的原生凭据。Bedrock、Vertex、Azure 和 Codex 分别使用 AWS 凭据与区域、ADC 项目、`api-version` 和 OAuth；只填写 API 密钥字段无法完成配置。
 
+## 使用 ChatGPT 订阅登录
+
+`openai-codex` 目录提供方提供 ChatGPT Plus 或 Pro 订阅所包含的 GPT 模型，并通过 OAuth 而非密钥认证。选择**添加提供方**，选取 `openai-codex`，密钥留空并保存；该路由此时已存在但没有凭据。然后在任意对话中运行：
+
+```text
+/login openai-codex
+```
+
+命令会回答 flow 的第一个问题，即登录方式。回复 `/login openai-codex browser` 通过运行 harness 的那台机器上的浏览器登录（回调落在 `localhost:1455`），或在浏览器位于别处时回复 `/login openai-codex device_code`。下一条回答会携带要打开的页面，设备代码方式还会携带要在那里输入的代码。若浏览器无法访问回调，用 `/login openai-codex <value>` 粘贴重定向 URL 或授权码。单独的 `/login` 会列出所有提供登录的提供方及其状态，`/logout openai-codex` 则撤回正在进行的尝试并删除已存储的凭据。登录后，从选择器中挑选一个 GPT 模型；该选择会保存为之后会话的默认值。
+
 ## 添加自定义提供方
 
 对于公司网关、自建服务器或已安装目录中不存在的提供方，选择**添加自定义提供方**。提供小写 Provider ID、基础 URL、API 协议、凭据和至少一个模型。

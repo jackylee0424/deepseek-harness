@@ -33,6 +33,8 @@ describe('dsh-base bundle', () => {
     expect(rows.length).toBeGreaterThan(50)
     expect(rows.some(row => row.id === 'agent-loop')).toBe(true)
     expect(rows.filter(row => row.id === 'session-telemetry-otel')).toHaveLength(0)
+    expect(rows.find(row => row.id === 'authorization')).toEqual({ id: 'authorization', name: '@deepseek-ai/dsh-authorization' })
+    expect(rows.find(row => row.id === 'command-login')).toEqual({ id: 'command-login', name: '@deepseek-ai/dsh-command-login' })
     expect(rows.find(row => row.id === 'session-telemetry-file')).toEqual({
       id: 'session-telemetry-file',
       name: '@deepseek-ai/dsh-session-telemetry-file',

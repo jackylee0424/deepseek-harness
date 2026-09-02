@@ -18,6 +18,16 @@ Choose **Add provider**, select a provider such as Anthropic or OpenAI, enter it
 
 Providers with native authentication need their native credentials instead. Bedrock, Vertex, Azure, and Codex use AWS credentials and a region, an ADC project, an `api-version`, and OAuth respectively; filling only the API-key field does not configure them.
 
+## Sign in with a ChatGPT subscription
+
+The `openai-codex` catalog provider serves the GPT models a ChatGPT Plus or Pro subscription includes, and it authenticates through OAuth rather than a key. Choose **Add provider**, select `openai-codex`, leave the key blank, and save; the route now exists but holds no credential. Then, in any conversation, run:
+
+```text
+/login openai-codex
+```
+
+The command answers with the flow's first question, the login method. Reply with `/login openai-codex browser` to sign in through a browser on the machine that runs the harness (the callback lands on `localhost:1455`), or `/login openai-codex device_code` when that browser is elsewhere. The next answer carries the page to open and, for the device method, the code to enter there. If the browser cannot reach the callback, paste the redirect URL or authorization code with `/login openai-codex <value>`. `/login` alone lists every provider that offers a sign-in with its state, and `/logout openai-codex` withdraws a running attempt and deletes the stored credential. Once signed in, pick a GPT model from the picker; the selection is saved as the default for later sessions.
+
 ## Add a custom provider
 
 Choose **Add a custom provider** for a company gateway, self-hosted server, or provider absent from the installed catalog. Supply a lowercase Provider ID, base URL, API protocol, credential, and at least one model.

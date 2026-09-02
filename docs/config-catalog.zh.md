@@ -397,6 +397,27 @@ export interface Config {
 
 来源：[`packages/code-runtime/code-runtime-worker-thread/src/index.ts:25`](../packages/code-runtime/code-runtime-worker-thread/src/index.ts)
 
+<a id="deepseek-aidsh-command-login"></a>
+
+## `@deepseek-ai/dsh-command-login`
+
+需要：`commands`
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface Config {
+  /**
+   * How long one `/login` invocation waits for the flow's next notice or
+   * question before it answers with whatever it has; the attempt keeps running
+   * afterwards and a later `/login <provider>` reports it. Defaults to
+   * {@link DEFAULT_PROGRESS_TIMEOUT_MS}.
+   */
+  progressTimeoutMs?: number
+}
+```
+
+来源：[`packages/credentials/command-login/src/index.ts:34`](../packages/credentials/command-login/src/index.ts)
+
 <a id="deepseek-aidsh-compaction-basic"></a>
 
 ## `@deepseek-ai/dsh-compaction-basic`
