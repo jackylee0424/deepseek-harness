@@ -41,7 +41,7 @@ const TEST_PNG = Uint8Array.from(readFileSync(
   new URL('../../llm-pi-ai/tests/fixtures/qr-code.png', import.meta.url),
 ))
 const contexts: Context[] = []
-let identityHome: string
+let isolatedHome: string
 
 class E2eAttachmentStore extends AttachmentStore {
   readonly imageLimits: ImageAttachmentLimits = {
@@ -95,8 +95,8 @@ class E2eAttachmentStore extends AttachmentStore {
 }
 
 beforeEach(async () => {
-  identityHome = await mkdtemp(join(tmpdir(), 'dsh-e2e-user-id-'))
-  vi.stubEnv('DSH_HOME', identityHome)
+  isolatedHome = await mkdtemp(join(tmpdir(), 'dsh-e2e-home-'))
+  vi.stubEnv('DSH_HOME', isolatedHome)
 })
 
 async function harness(_model: string, config: Partial<Config> = {}) {
@@ -112,7 +112,7 @@ afterEach(async () => {
   await Promise.all(contexts.splice(0).map(ctx => ctx.fiber.dispose()))
   vi.unstubAllGlobals()
   vi.unstubAllEnvs()
-  await rm(identityHome, { recursive: true, force: true })
+  await rm(isolatedHome, { recursive: true, force: true })
 })
 
 function ask(text: string): Message[] {

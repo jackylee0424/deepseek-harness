@@ -10,6 +10,8 @@ session telemetry 已默认挂载（[默认挂载 Note](2026-07-31-web-telemetry
 
 ## 决策
 
+该决策已不再生效：[移除远程遥测](../simplification/2026-09-02-remove-remote-telemetry.zh.md)删除了 `dsh-session-telemetry-otel` 后端、它在基础组合包中的挂载以及 `DSH_TELEMETRY_*` 开关。以下各节记录的是该移除之前已交付的决策。
+
 `getOrCreateAnonymousUserId()` 返回 `$DSH_HOME/.anonymous-user-id`（`resolveDshHome` 解析，`$DSH_HOME` > `~/.dsh`）中的裸 UUID 行，首用生成随机 UUID v4 并落盘；后端构造时把它作为 Resource 的 `user.id`（OTel semconv 标准用户属性）随每批导出携带一次。原始实现位于 `session-telemetry-otel`，因为当时不存在第二个真实消费方。`/feedback` 后来成为该消费方，因此[共享 id 决策](../architecture/2026-08-07-shared-feedback-telemetry-user-id.zh.md)将所有权移交给 `@deepseek-ai/dsh-anonymous-user-id`，但不改变本 Note 记录的存储、匿名、并发与丢失语义。[直连 DeepSeek 请求身份](2026-08-11-deepseek-request-user-id-header.zh.md)是同一 id 的第三个消费方。
 
 | 裁定 | 取值 | 理由 |

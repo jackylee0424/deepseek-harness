@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-session-telemetry` captures session activity for outbound reporting: it projects session events into telemetry records, lets a deployment redact them, and hands them to a reporting backend that implements its contract. Deployments do not load this package directly — they load exactly one backend (the shipped OpenTelemetry backend is `dsh-session-telemetry-otel`), which registers `ctx.sessionTelemetry` and composes the capture coordinator. The seam owns capture, redaction, and the sharing disclosure; batching, retry, queueing, and loss policy belong to the backend's SDK and stop at `emit()`. Every mounted backend discloses its deployment-selected sharing policy so acknowledgement surfaces can report whether and how a session is shared. The contract and capture behavior come first; the implementation internals live in a collapsible developer section below.
+`dsh-session-telemetry` captures session activity for outbound reporting: it projects session events into telemetry records, lets a deployment redact them, and hands them to a reporting backend that implements its contract. Deployments do not load this package directly — they load exactly one backend (the shipped local-file backend is `dsh-session-telemetry-file`), which registers `ctx.sessionTelemetry` and composes the capture coordinator; no shipped backend transmits anything off this machine. The seam owns capture, redaction, and the sharing disclosure; batching, retry, queueing, and loss policy belong to the backend's SDK and stop at `emit()`. Every mounted backend discloses its deployment-selected sharing policy so acknowledgement surfaces can report whether and how a session is shared. The contract and capture behavior come first; the implementation internals live in a collapsible developer section below.
 
 ## Table of Contents
 
@@ -43,7 +43,7 @@ Capture runs in one of two modes. `live` capture follows session events as they 
 
 <a id="the-sharing-disclosure"></a>
 
-Every backend discloses its deployment-selected sharing policy through the seam's `sharing` vocabulary: `full` (every event is handed over as it happens), `feedback-only` (nothing is handed over until a `feedback/record` event releases the unreleased prefix), or `disabled` (nothing is handed over at all). The acknowledgement of a recorded feedback entry reports this status; the disclosure never claims delivery — handoff is the non-blocking enqueue, and batching, retry, and loss policy stay the backend SDK's.
+Every backend discloses its deployment-selected sharing policy through the seam's `sharing` vocabulary: `full` (every event is handed over as it happens), `feedback-only` (nothing is handed over until a `feedback/record` event releases the unreleased prefix), `disabled` (nothing is handed over at all), or `local` (every record is handed to a backend that keeps it on this machine). The acknowledgement of a recorded feedback entry reports this status; the disclosure never claims delivery — handoff is the non-blocking enqueue, and batching, retry, and loss policy stay the backend SDK's.
 
 ### Redacting records
 
@@ -89,7 +89,7 @@ A module-scope `WeakMap<Session, seq>` records, per session, the highest seq han
 
 Read these pages when the seam contract is not enough. They move from the shipped backend to the subsystem reference and the decision evidence.
 
-- [OpenTelemetry telemetry backend](../session-telemetry-otel/README.md) — the shipped backend deployments load, with mode and exporter configuration.
+- [Local-file telemetry backend](../session-telemetry-file/README.md) — the shipped backend deployments load, with its root configuration.
 - [Session telemetry subsystem](../../../docs/subsystems/session-telemetry.md) — the capability split and type declarations.
 - [Session telemetry revival decision](../../../.agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.md) — rationale, trade-offs, and rejected alternatives.
 - [Session package map](../README.md) — adjacent persistence, projection, title, and telemetry packages.

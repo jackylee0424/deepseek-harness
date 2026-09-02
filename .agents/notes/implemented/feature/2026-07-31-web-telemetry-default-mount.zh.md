@@ -10,6 +10,8 @@ Status: implemented
 
 ## 决策
 
+该决策已不再生效：[移除远程遥测](../simplification/2026-09-02-remove-remote-telemetry.zh.md)删除了 `dsh-session-telemetry-otel` 后端、它在基础组合包中的挂载以及 `DSH_TELEMETRY_*` 开关。以下各节记录的是该移除之前已交付的决策。
+
 共享 dsh 基础组合包（`packages/bundle/base/cordis.patch.yml`）挂载带有内置生产 endpoint 的 `session-telemetry-otel` 配置行，使每个基于 base 的 profile 都具有一致的遥测能力。独立的 [`sdk-minimal` profile](../architecture/2026-08-24-standalone-sdk-minimal-profile.zh.md)刻意省略该配置项。[默认关闭决策](2026-08-10-telemetry-default-off.zh.md)最初让已挂载配置项保持 `DISABLED` 模式；[反馈门控默认值决定](2026-08-25-feedback-gated-telemetry-default.zh.md)现在把未设置的模式解析为 `FEEDBACK_ONLY`，只在用户记录 `/feedback` 时上传。仅配置 endpoint 仍不构成上报授权。Web 与 headless 在 SIGINT/SIGTERM 时使用[有界、可升级的进程关闭控制器](../bug-fix/2026-08-03-cli-signal-shutdown-escalation.zh.md)，在启动器 5 秒上限到期前，先给已启用的后端 3 秒关闭截止时间完成排空。
 
 | 决策项 | 取值 | 理由 |

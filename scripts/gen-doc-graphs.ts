@@ -262,7 +262,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Authorization flow registry',
     mode: 'seam',
     implementations: [],
-    consumers: ['llm-pi-ai'],
+    consumers: ['llm-pi-ai', 'command-login'],
     note: 'Flows are registered by the plugin that knows how to obtain one credential and keyed by the record they write; the seam owns the conversation and the one-attempt-per-key lifecycle, never the protocol.',
   },
   {
@@ -270,9 +270,9 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'session-telemetry',
     title: 'Session telemetry seam',
     mode: 'seam',
-    implementations: ['session-telemetry-otel'],
+    implementations: ['session-telemetry-file'],
     consumers: [],
-    note: 'The seam captures, redacts, and hands session records to one backend; nothing else consumes the service — its output leaves the process.',
+    note: 'The seam captures, redacts, and hands session records to one backend; the shipped backend appends them to local per-session files, so nothing leaves the process by default.',
   },
   {
     key: 'storage',

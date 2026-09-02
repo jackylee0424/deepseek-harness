@@ -10,6 +10,8 @@ Status: implemented
 
 ## 决策
 
+该决策已不再生效：[移除远程遥测](../simplification/2026-09-02-remove-remote-telemetry.zh.md)删除了 `dsh-session-telemetry-otel` 后端、它在基础组合包中的挂载以及 `DSH_TELEMETRY_*` 开关。以下各节记录的是该移除之前已交付的决策。
+
 `@deepseek-ai/dsh-session-telemetry-otel` 向 TypeScript 调用方公开以字符串为值的 `SessionTelemetryMode` 枚举，并在序列化配置中接受相同的三个大写 `mode` 值：
 
 - `FULL` 显式选择向已配置 OTel 流水线即时投递。

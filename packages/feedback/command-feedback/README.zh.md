@@ -47,6 +47,7 @@ kind: "package-reference"
 | `full` | `Session sharing is enabled.` |
 | `feedback-only` | `Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.` |
 | `disabled` | `Session sharing is disabled.` |
+| `local` | `Session records are captured locally and never shared.` |
 | 无遥测服务 | `Session sharing is not configured.` |
 
 句子只报告当前策略，绝不声称反馈或会话已投递到任何地方。披露本身不记录任何内容，也绝不会到达模型。

@@ -33,16 +33,13 @@
       "path": "../../host/webserver"
     },
     {
-      "path": "../../util/launch-environment"
+      "path": "../../host/browser-open"
     },
     {
       "path": "../../core/system-prompt"
     },
     {
       "path": "../../shell/shell-env"
-    },
-    {
-      "path": "../../subprocess/subprocess"
     }
   ]
 }

@@ -29,6 +29,7 @@ Three packages provide the credential feature: one stores, looks up, and removes
 | [`credentials/`](credentials/README.md) | Store, look up, and remove secrets at runtime while configuration only names them | `ctx.credentials` |
 | [`credentials-local/`](credentials-local/README.md) | The default on-machine store: a private YAML file, environment overrides win | registers `ctx.credentials` |
 | [`authorization/`](authorization/README.md) | Plugin-owned flows that obtain a credential by asking a human | `ctx.authorization` |
+| [`command-login/`](command-login/README.md) | The `/login` and `/logout` commands that run those flows from a conversation | uses `ctx.authorization` |
 
 -----
 

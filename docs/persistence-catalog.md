@@ -407,7 +407,7 @@ Source: [`packages/compaction/compaction/src/types.ts:34`](../packages/compactio
 'feedback/record': { text: string }
 ```
 
-Source: [`packages/feedback/command-feedback/src/index.ts:62`](../packages/feedback/command-feedback/src/index.ts)
+Source: [`packages/feedback/command-feedback/src/index.ts:64`](../packages/feedback/command-feedback/src/index.ts)
 
 ### `goal/*`
 

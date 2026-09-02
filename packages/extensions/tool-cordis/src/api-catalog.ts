@@ -5142,7 +5142,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionTelemetrySharingStatus',
-    declaration: 'export type SessionTelemetrySharingStatus = \'full\' | \'feedback-only\' | \'disabled\';',
+    declaration: 'export type SessionTelemetrySharingStatus = \'full\' | \'feedback-only\' | \'disabled\' | \'local\';',
   },
   {
     name: 'SessionTitleAutomaticMode',

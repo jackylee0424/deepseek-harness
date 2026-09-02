@@ -1,5 +1,5 @@
 ---
-description: "identity 包组：由遥测、反馈与 DeepSeek 提供方请求共享的匿名按 harness home 关联 id。"
+description: "identity 包组：反馈确认所报告的匿名按 harness home id。"
 kind: "package-group"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-group"
 
 ## 概述
 
-identity 组为每个 harness home 提供一个匿名 id，该安装的遥测、反馈与 DeepSeek 请求会把它附加到各自的记录上，因此离开同一个 home 的所有内容都能被识别为来自同一套安装，而无需识别用户身份。无需配置任何东西：id 会在这些功能之一首次运行时自动出现，并在文件被删除前保持稳定。本组只有一个包；本页是组的映射，包 README 负责细节。
+identity 组为每个 harness home 提供一个匿名 id，`/feedback` 确认会报告它，因此引用反馈的用户无需暴露身份即可指明自己的安装。没有任何功能会把该 id 发送到别处；部署方自行挂载的遥测后端可以把它附加到自己的记录上。无需配置任何东西：id 会在首次记录反馈时自动出现，并在文件被删除前保持稳定。本组只有一个包；本页是组的映射，包 README 负责细节。
 
 ## 目录
 
@@ -22,13 +22,13 @@ identity 组为每个 harness home 提供一个匿名 id，该安装的遥测、
 
 | 包 | 职责 |
 |---|---|
-| [`anonymous-user-id`](anonymous-user-id/README.zh.md) | 让每个 harness home 拥有一个匿名 id，遥测、反馈与 DeepSeek 请求把它附加到记录上，使来自同一安装的记录无需识别用户即可被辨认 |
+| [`anonymous-user-id`](anonymous-user-id/README.zh.md) | 让每个 harness home 拥有一个匿名 id，反馈确认会报告它，使安装无需识别用户即可被指明 |
 
 <a id="related-documentation"></a>
 ## 相关文档
 
-- [会话遥测子系统](../../docs/subsystems/session-telemetry.zh.md)——在导出中携带该 id 的遥测功能。
-- [dsh-llm-deepseek](../llm/llm-deepseek/README.zh.md)——在请求中携带该 id 的 DeepSeek 提供方。
+- [会话遥测子系统](../../docs/subsystems/session-telemetry.zh.md)——部署方自行挂载的后端可用该 id 扩展的捕获 seam。
+- [移除远程遥测](../../.agents/notes/implemented/simplification/2026-09-02-remove-remote-telemetry.zh.md)——为何没有任何随附功能会外发该 id。
 - [dsh-command-feedback](../feedback/command-feedback/README.zh.md)——在确认文本中点名该匿名安装的反馈命令。
 
 <a id="dev-note"></a>

@@ -214,7 +214,6 @@ def write_profile_patch(
             "id": "session-persistence-jsonl",
             "config": {"root": str(sessions), "compression": "none"},
         },
-        {"id": "session-telemetry-otel", "disabled": True},
         *patches,
     ], indent=2))
     return path
@@ -857,7 +856,6 @@ def smoke_sdk_live() -> None:
             dsh_home=str(dsh_home),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key=api_key,
             base_url=base_url,
@@ -930,7 +928,6 @@ def smoke_sdk_default(base_url: str) -> None:
             dsh_home=str(dsh_home),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key="sk-keyless-smoke",
             base_url=base_url,
@@ -962,7 +959,6 @@ def smoke_sdk_custom(base_url: str, executable: Path) -> None:
             patches=(str(patch),),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key="sk-keyless-smoke",
             base_url=base_url,
@@ -1037,7 +1033,6 @@ def smoke_sdk_fs_search(base_url: str, executable: Path) -> None:
             patches=(str(patch),),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key="sk-keyless-smoke",
             base_url=base_url,
@@ -1070,7 +1065,6 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
             patches=(str(patch),),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key="sk-keyless-smoke",
             base_url=base_url,
@@ -1151,7 +1145,6 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             dsh_home=str(dsh_home),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key="sk-keyless-smoke",
             base_url=base_url,
@@ -1187,7 +1180,6 @@ def smoke_sdk_snapshot(base_url: str, executable: Path, update_snapshots: bool) 
             patches=(str(patch),),
             env={
                 "DSH_PERMISSION_MODE": "danger-full-access",
-                "DSH_TELEMETRY_DISABLED": "1",
             },
             api_key="sk-keyless-smoke",
             base_url=base_url,
@@ -1239,7 +1231,6 @@ def smoke_sdk_restart_snapshot(base_url: str, executable: Path, update_snapshots
                 patches=(str(patch),),
                 env={
                     "DSH_PERMISSION_MODE": "danger-full-access",
-                    "DSH_TELEMETRY_DISABLED": "1",
                 },
                 api_key="sk-keyless-smoke",
                 base_url=base_url,
@@ -1287,7 +1278,6 @@ def smoke_direct(base_url: str, executable: Path) -> None:
             **os.environ,
             "DSH_HOME": str(dsh_home),
             "DSH_PERMISSION_MODE": "danger-full-access",
-            "DSH_TELEMETRY_DISABLED": "1",
             "DEEPSEEK_API_KEY": "sk-keyless-smoke",
             "DEEPSEEK_BASE_URL": base_url,
         }

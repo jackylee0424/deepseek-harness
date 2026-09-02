@@ -206,6 +206,15 @@ describe('/feedback human command', () => {
     expect(feedbackTexts(test.session)).toEqual(['local only'])
   })
 
+  it('discloses local-only capture in the acknowledgement', async () => {
+    const test = await harness('local')
+    await expect(run(test, ' kept on this machine')).resolves.toEqual({
+      kind: 'success',
+      text: `Feedback recorded for session ${test.session.id}\nAnonymous user: ${USER_ID}. Session records are captured locally and never shared.`,
+    })
+    expect(feedbackTexts(test.session)).toEqual(['kept on this machine'])
+  })
+
   it('keeps every recorded event out of model context and derived history', async () => {
     const test = await harness()
     await run(test, ' invisible to the model')

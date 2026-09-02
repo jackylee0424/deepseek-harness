@@ -18,7 +18,7 @@ Status: implemented
 
 `dsh-commands` 仍会围绕 `/feedback` 写入 `command/run` / `command/done` 生命周期配对，但该命令设置了 `recordInput: false`。因此，它的 `command/run` 携带命令标识与来源，但不携带 `args`；反馈文本只存在于 `feedback/record` 中，而 `command/done` 携带确认结果。三个记录都仅写入日志且非 surface。它们的追加会进入持久化的常规有界写入路径；没有任何环节强制 flush，因此确认文本报告的是反馈已进入日志，而非已经落盘。
 
-采集对正在运行的 agent（智能体）与模型仍不产生后续动作。可选的 OTel 遥测包后续增加了一个基础设施消费方：它在 `FEEDBACK_ONLY` 模式下将 `feedback/record` 作为释放触发器，在 `DISABLED` 模式下将其作为仅限本地的警告触发器，且不改变反馈事件或命令路径。见[反馈门控的会话遥测](2026-08-05-feedback-gated-session-telemetry.zh.md)与[确认文本中的共享披露](2026-08-07-feedback-acknowledgement-sharing-disclosure.zh.md)。
+采集对正在运行的 agent（智能体）与模型仍不产生后续动作。没有任何随附包消费该事件：曾将其用作释放触发器的 OpenTelemetry 后端已被[移除远程遥测](../simplification/2026-09-02-remove-remote-telemetry.zh.md)删除，部署方自行挂载的后端可以用同样的方式观察它，且不改变反馈事件或命令路径。见[反馈门控的会话遥测](2026-08-05-feedback-gated-session-telemetry.zh.md)与[确认文本中的共享披露](2026-08-07-feedback-acknowledgement-sharing-disclosure.zh.md)。
 
 ### 为何反馈拥有自己的事件
 
@@ -58,6 +58,6 @@ Status: implemented
 
 本包拥有一个独立的仅追加事件，不存在跨事件关系或可变数据关系可供不变式伴生插件检查。该事件遵循会话日志现有的回放、fork、持久化和崩溃尾部行为。
 
-延期事项：没有产品或模型消费方；没有结构化字段；不支持修改或撤回，因为日志仅追加且本包不新增 tombstone；且没有显式持久化屏障，因此紧临崩溃前记录的条目可能与其他未 flush 的尾部一同丢失。可选的遥测消费方只将该事件作为导出策略触发器。
+延期事项：没有产品或模型消费方；没有结构化字段；不支持修改或撤回，因为日志仅追加且本包不新增 tombstone；且没有显式持久化屏障，因此紧临崩溃前记录的条目可能与其他未 flush 的尾部一同丢失。部署方自行挂载的遥测后端只能将该事件作为导出策略触发器。
 
 本次变更按请求者的明确指示不附带无密钥 transcript（文本记录）快照。包测试、基于 `cordis.yml` 的真实 Loader 组合测试，以及随附的 Web 组合测试覆盖注册、采集、模型排除和产品组装。

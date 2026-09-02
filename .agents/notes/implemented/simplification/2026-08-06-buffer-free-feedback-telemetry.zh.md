@@ -10,6 +10,8 @@ Status: implemented
 
 ## 决策
 
+该决策已不再生效：[移除远程遥测](2026-09-02-remove-remote-telemetry.zh.md)删除了 `dsh-session-telemetry-otel` 后端、它在基础组合包中的挂载以及 `DSH_TELEMETRY_*` 开关。以下各节记录的是该移除之前已交付的决策。
+
 遥测协调器提供 `live` 与 `on-demand` 捕获。按需捕获不注册会话、flush 或运维事件监听器，也不保留投影记录。`captureSession(session, throughSeq?)` 从 handoff 游标之后读取权威会话日志，直至可选的序列号边界（含边界），应用固定投影、深拷贝每个已接受事件、运行当前的 `session-telemetry/record` waterfall（瀑布式事件），并将结果交给后端。
 
 `FEEDBACK_ONLY` 以 `feedback/record` 事件的序列号调用该方法。`session/event` 监听器运行时，追加已经提交，因此回放包含该反馈事件，且无法包含后续后缀。现有 handoff 游标可区分后续回放，无需另一个待处理记录索引。
